@@ -27,14 +27,14 @@ cargo --version && solana --version && anchor --version && node --version && npm
 
 **Goal**: Implement the complete on-chain smart contract with all 4 PDAs and 8 instructions, and prove every exploit rejection path using LiteSVM tests before Devnet deployment.
 
-- [ ] T006 [P] [US2] Define custom error codes (`VaultIsHalted`, `ExceedsMaxPositionCap`, `UnapprovedMint`, `DailyDrawdownHalted`, `InvalidTradeNonce`, `UnauthorizedDepositor`, `InsufficientShares`, `AclAccessDenied`) in `programs/blind_vault/src/errors.rs`
-- [ ] T007 [P] [US2] Implement state account structs (`VaultState`, `DepositorPosition`, `DemoSwapPool`, `SealedStrategy`) with exact byte sizes and deterministic PDA seeds in `programs/blind_vault/src/state.rs`
-- [ ] T008 [US1] [US2] Implement `initialize_vault`, `deposit`, and `withdraw` instructions with depositor-only ownership constraint (`has_one = owner`) in `programs/blind_vault/src/lib.rs`
-- [ ] T009 [US2] Implement MagicBlock PER delegation and enclave sealing instructions (`delegate_strategy`, `init_and_seal_strategy`, `undelegate_strategy`) using untyped account info and `CpiContext::new` with explicit `Pubkey` in `programs/blind_vault/src/lib.rs`
-- [ ] T010 [US4] Implement `evaluate_signal_private` instruction inside the enclave with `#[commit]` attribute to commit pending trade order and SHA-256 signal hash back to L1 in `programs/blind_vault/src/lib.rs`
-- [ ] T011 [US2] Implement `execute_bounded_trade` (L1 Risk Firewall enforcing 20% max trade cap, token allowlist, sequential nonce, and 24h rolling loss breaker) and `simulate_market_move` (deterministic -6% drawdown trigger) in `programs/blind_vault/src/lib.rs`
-- [ ] T012 [P] [US2] Build in-process LiteSVM test harness configuring clock manipulation, fee-payers, and demo mints in `tests/blind_vault.spec.ts`
-- [ ] T013 [US2] Implement LiteSVM test cases proving: (1) valid vault lifecycle, (2) Attack 1 unauthorized strategy peek rejection, (3) Attack 2 operator withdrawal rejection, (4) Attack 3 oversized swap (>20%) and unapproved token rejection, (5) Attack 4 -6% drawdown tripping `DailyDrawdownHalted`, and (6) Emergency Depositor Exit returning 100% of remaining funds during halt in `tests/blind_vault.spec.ts`
+- [X] T006 [P] [US2] Define custom error codes (`VaultIsHalted`, `ExceedsMaxPositionCap`, `UnapprovedMint`, `DailyDrawdownHalted`, `InvalidTradeNonce`, `UnauthorizedDepositor`, `InsufficientShares`, `AclAccessDenied`) in `programs/blind_vault/src/errors.rs`
+- [X] T007 [P] [US2] Implement state account structs (`VaultState`, `DepositorPosition`, `DemoSwapPool`, `SealedStrategy`) with exact byte sizes and deterministic PDA seeds in `programs/blind_vault/src/state.rs`
+- [X] T008 [US1] [US2] Implement `initialize_vault`, `deposit`, and `withdraw` instructions with depositor-only ownership constraint (`has_one = owner`) in `programs/blind_vault/src/lib.rs`
+- [X] T009 [US2] Implement MagicBlock PER delegation and enclave sealing instructions (`delegate_strategy`, `init_and_seal_strategy`, `undelegate_strategy`) using untyped account info and `CpiContext::new` with explicit `Pubkey` in `programs/blind_vault/src/lib.rs`
+- [X] T010 [US4] Implement `evaluate_signal_private` instruction inside the enclave with `#[commit]` attribute to commit pending trade order and SHA-256 signal hash back to L1 in `programs/blind_vault/src/lib.rs`
+- [X] T011 [US2] Implement `execute_bounded_trade` (L1 Risk Firewall enforcing 20% max trade cap, token allowlist, sequential nonce, and 24h rolling loss breaker) and `simulate_market_move` (deterministic -6% drawdown trigger) in `programs/blind_vault/src/lib.rs`
+- [X] T012 [P] [US2] Build in-process LiteSVM test harness configuring clock manipulation, fee-payers, and demo mints in `tests/blind_vault.spec.ts`
+- [X] T013 [US2] Implement LiteSVM test cases proving: (1) valid vault lifecycle, (2) Attack 1 unauthorized strategy peek rejection, (3) Attack 2 operator withdrawal rejection, (4) Attack 3 oversized swap (>20%) and unapproved token rejection, (5) Attack 4 -6% drawdown tripping `DailyDrawdownHalted`, and (6) Emergency Depositor Exit returning 100% of remaining funds during halt in `tests/blind_vault.spec.ts`
 
 ### Phase 2 Verification Command
 ```bash
