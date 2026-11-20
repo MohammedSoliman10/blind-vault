@@ -13,7 +13,7 @@
 - [ ] T001 Create open-source MIT license file in `LICENSE`
 - [ ] T002 [P] Create repository `.gitignore` covering Rust target, Node modules, Next.js build, and `.env*.local` in `.gitignore`
 - [ ] T003 [P] Create `BUILD_LOG.md` establishing transparent separation of pre-hackathon work (Nov 20–26, 2026) from official hackathon weekend commits (Nov 27–28, 2026) in `BUILD_LOG.md`
-- [ ] T004 Initialize Anchor 1.0 workspace with program crate `programs/blind_vault` pinned to `anchor-lang = "0.30.1"` (or matching `anchor-cli 1.1.2`) and `ephemeral-rollups-sdk = { version = "0.17.3", features = ["anchor", "access-control"] }` in `programs/blind_vault/Cargo.toml` and `Anchor.toml`
+- [ ] T004 Initialize Anchor 1.0 workspace with program crate `programs/blind_vault` pinned to `anchor-lang = "1.1.2"` (matching verified `anchor-cli 1.1.2`) and `ephemeral-rollups-sdk = { version = "0.17.3", features = ["anchor", "access-control"] }` in `programs/blind_vault/Cargo.toml` and `Anchor.toml`, verifying `ephemeral-rollups-sdk` compatibility with `anchor-lang = "1.1.2"` via `cargo check` before proceeding to Phase 2
 - [ ] T005 [P] Initialize Next.js 15 App Router frontend using `npm` with Tailwind CSS and TypeScript in `package.json`, `tsconfig.json`, and `postcss.config.mjs`
 
 ### Phase 1 Verification Command
@@ -65,7 +65,7 @@ npx ts-node scripts/gate-tee-connectivity.ts
 - [ ] T017 [P] Create Supabase Postgres migration establishing `scraped_signals` (with 15-minute expiration) and `arena_events` tables with Realtime publication in `supabase/migrations/001_initial_schema.sql`
 - [ ] T018 [US1] Implement `/api/sponsor-tx` route enforcing `blind_vault` Program ID allowlist, per-IP rate limiting (10 req/min), fee-payer co-signing via Devnet Sponsor Keypair, and initial 1,000 Demo-USDC airdrop in `app/api/sponsor-tx/route.ts`
 - [ ] T019 [US4] Implement `/api/signal` route integrating 15-minute Supabase cache lookup, Firecrawl `/v1/scrape` in Markdown mode, Google AI Studio `gemini-3.8-flash` 0–100 catalyst scoring with Groq free-tier 429 fallback, and SHA-256 hash generation in `app/api/signal/route.ts`
-- [ ] T020 [P] Implement `/api/keepalive` route executing a lightweight heartbeat query to prevent the free-tier Supabase database from entering the 7-day inactivity pause in `app/api/keepalive/route.ts`
+- [ ] T020 [P] Implement `/api/keepalive` route executing a lightweight heartbeat query to prevent the free-tier Supabase database from entering the 7-day inactivity pause in `app/api/keepalive/route.ts`, create the lightweight API verification test script in `tests/api.spec.ts`, and wire the `"test:api"` script in `package.json`
 
 ### Phase 4 Verification Command
 ```bash

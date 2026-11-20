@@ -44,7 +44,7 @@
 ## Technical Architecture & Operational Constraints
 
 - **On-Chain Framework**: Solana Anchor (1.0.x / 0.32.x as pinned by dependencies).
-- **Enclave SDK Pin**: Pin `ephemeral-rollups-sdk = { version = "0.18", features = ["anchor", "access-control"] }` to match the devnet TEE validator (`MTEWGuqxUpYZGFJQcp8tLN7x5v9BSeoFHYWQQ3n3xzo`) rather than unpinned 0.20 which targets devnet-us.
+- **Enclave SDK Pin**: Pin `ephemeral-rollups-sdk = { version = "0.17.3", features = ["anchor", "access-control"] }` to match the devnet TEE validator (`MTEWGuqxUpYZGFJQcp8tLN7x5v9BSeoFHYWQQ3n3xzo`) rather than unpinned 0.20 which targets devnet-us.
 - **TEE Authentication**: Ingress requires `verifyTeeRpcIntegrity` followed by `getAuthToken` session acquisition.
 - **Testing Runtime**: Fast local contract verification using LiteSVM for instant transaction simulation and exploit rejection asserts.
 - **Frontend Stack**: Next.js / Tailwind CSS with guest keypair generation and sponsored transaction relayer (`/api/sponsor-tx`).
@@ -67,4 +67,4 @@
   - **PATCH**: Clarifications, wording refinements, and typo fixes.
 - **Compliance Gating**: Every implementation task must verify adherence to the $0 policy, L1 custody invariants, LiteSVM test requirements, and Obsidian knowledge base synchronization.
 
-**Version**: 1.0.0 | **Ratified**: 2026-11-20 | **Last Amended**: 2026-11-20
+**Version**: 1.0.1 | **Ratified**: 2026-11-20 | **Last Amended**: 2026-11-20
