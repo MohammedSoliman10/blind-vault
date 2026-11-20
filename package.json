@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "ts-node --transpile-only tests/blind_vault.spec.ts"
+    "test": "ts-node --transpile-only tests/blind_vault.spec.ts",
+    "generate:client": "ts-node --transpile-only scripts/generate-client.ts",
+    "gate:tee": "ts-node --transpile-only scripts/gate-tee-connectivity.ts"
   },
   "dependencies": {
     "next": "15.0.3",
@@ -15,12 +17,16 @@
     "react-dom": "19.0.0-rc-66855b96-20241106"
   },
   "devDependencies": {
+    "@codama/nodes-from-anchor": "^1.5.6",
+    "@codama/renderers-js": "^2.9.1",
     "@coral-xyz/anchor": "^0.32.1",
+    "@magicblock-labs/ephemeral-rollups-sdk": "^0.20.0",
     "@solana/spl-token": "^0.4.15",
     "@solana/web3.js": "^1.99.0",
     "@types/node": "^22.9.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "codama": "^1.11.0",
     "eslint": "^9.15.0",
     "eslint-config-next": "15.0.3",
     "litesvm": "^1.6.2",

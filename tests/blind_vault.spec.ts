@@ -42,7 +42,7 @@ function sendTx(svm: LiteSVM, tx: web3.Transaction, signers: web3.Keypair[]): Tr
   tx.recentBlockhash = svm.latestBlockhash();
   tx.feePayer = signers[0].publicKey;
   tx.sign(...signers);
-  return svm.inner.sendLegacyTransaction(tx.serialize());
+  return (svm as any).inner.sendLegacyTransaction(tx.serialize());
 }
 
 function assertSuccess(res: TransactionMetadata | FailedTransactionMetadata, label: string) {
@@ -74,17 +74,17 @@ function assertError(
 
 async function setupTestContext(): Promise<TestContext> {
   const svm = new LiteSVM();
-  svm.addProgramFromFile(PROGRAM_ID.toBase58(), SBF_PATH);
+  svm.addProgramFromFile(PROGRAM_ID.toBase58() as any, SBF_PATH);
   // Add MagicBlock PER commit CPI handler mock
-  svm.addProgramFromFile(MAGIC_PROGRAM_ID, SBF_PATH);
+  svm.addProgramFromFile(MAGIC_PROGRAM_ID as any, SBF_PATH);
 
   const strategist = web3.Keypair.generate();
   const depositor = web3.Keypair.generate();
   const attacker = web3.Keypair.generate();
 
-  svm.airdrop(strategist.publicKey.toBase58(), 10_000_000_000n);
-  svm.airdrop(depositor.publicKey.toBase58(), 10_000_000_000n);
-  svm.airdrop(attacker.publicKey.toBase58(), 10_000_000_000n);
+  svm.airdrop(strategist.publicKey.toBase58() as any, 10_000_000_000n as any);
+  svm.airdrop(depositor.publicKey.toBase58() as any, 10_000_000_000n as any);
+  svm.airdrop(attacker.publicKey.toBase58() as any, 10_000_000_000n as any);
 
   const quoteMint = web3.Keypair.generate();
   const approvedTargetMint = web3.Keypair.generate();
@@ -540,8 +540,8 @@ async function runTestSuite() {
     assertSuccess(crashRes, 'Simulate Market Drop -6% (Trips Circuit Breaker)');
 
     // Verify vault is halted in account state
-    const vaultAcc = ctx.svm.getAccount(ctx.vaultPda.toBase58());
-    assert(vaultAcc && vaultAcc.exists, 'Vault account exists');
+    const vaultAcc = ctx.svm.getAccount(ctx.vaultPda.toBase58() as any);
+    assert(vaultAcc && 'data' in vaultAcc, 'Vault account exists');
     const decodedVault = ctx.program.coder.accounts.decode('vaultState', Buffer.from(vaultAcc.data));
     assert.strictEqual(decodedVault.isHalted, true, 'Vault isHalted flag must be true');
 
@@ -606,12 +606,14 @@ async function runTestSuite() {
     assertSuccess(withdrawRes, 'Emergency Depositor Exit During Vault Halt');
 
     // Confirm depositor received funds and total shares is 0
-    const vaultAcc = ctx.svm.getAccount(ctx.vaultPda.toBase58());
-    const decodedVault = ctx.program.coder.accounts.decode('vaultState', Buffer.from(vaultAcc!.data));
+    const vaultAcc = ctx.svm.getAccount(ctx.vaultPda.toBase58() as any);
+    assert(vaultAcc && 'data' in vaultAcc, 'Vault account exists');
+    const decodedVault = ctx.program.coder.accounts.decode('vaultState', Buffer.from(vaultAcc.data));
     assert.strictEqual(decodedVault.totalShares.toNumber(), 0, 'Total shares must be 0 after 100% exit');
 
-    const depositorPosAcc = ctx.svm.getAccount(ctx.depositorPosPda.toBase58());
-    const decodedPos = ctx.program.coder.accounts.decode('depositorPosition', Buffer.from(depositorPosAcc!.data));
+    const depositorPosAcc = ctx.svm.getAccount(ctx.depositorPosPda.toBase58() as any);
+    assert(depositorPosAcc && 'data' in depositorPosAcc, 'Depositor position exists');
+    const decodedPos = ctx.program.coder.accounts.decode('depositorPosition', Buffer.from(depositorPosAcc.data));
     assert.strictEqual(decodedPos.shares.toNumber(), 0, 'Depositor shares must be 0');
 
     console.log('  ✓ Emergency Exit succeeded: Depositor successfully withdrew 100% of funds while vault was halted.\n');

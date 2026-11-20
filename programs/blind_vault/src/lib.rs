@@ -58,10 +58,15 @@ pub mod blind_vault {
     pub fn delegate_strategy(ctx: Context<DelegateStrategyAccounts>) -> Result<()> {
         let vault_key = ctx.accounts.vault.key();
         let seeds: &[&[u8]] = &[b"strategy", vault_key.as_ref()];
+        let validator = pubkey!("MTEWGuqxUpYZGFJQcp8tLN7x5v9BSeoFHYWQQ3n3xzo");
+        let config = DelegateConfig {
+            commit_frequency_ms: 0,
+            validator: Some(validator),
+        };
         ctx.accounts.delegate_strategy(
             &ctx.accounts.strategist,
             seeds,
-            DelegateConfig::default(),
+            config,
         )?;
         Ok(())
     }

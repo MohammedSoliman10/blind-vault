@@ -47,9 +47,9 @@ cargo build-sbf && npm test
 
 **Goal**: Deploy the program to Solana Devnet, verify live Intel TDX PER connectivity and ACL gating from Cairo, and generate typed client bindings.
 
-- [ ] T014 Build and deploy `blind_vault` to Solana Devnet using `anchor program deploy --provider.cluster devnet` and save deployed Program ID to `Anchor.toml`
-- [ ] T015 Create live Devnet Day-1 connectivity script `scripts/gate-tee-connectivity.ts` verifying `verifyTeeRpcIntegrity("https://devnet-tee.magicblock.app")`, delegating `SealedStrategy` to validator `MTEWGuqxUpYZGFJQcp8tLN7x5v9BSeoFHYWQQ3n3xzo`, and proving `getAccountInfo` succeeds with `authToken` and throws `Access Denied` without it in `scripts/gate-tee-connectivity.ts`
-- [ ] T016 [P] Configure Codama IDL client generation targeting `@solana/kit` and output TypeScript bindings in `lib/solana/generated/index.ts` via `scripts/generate-client.ts`
+- [X] T014 Build and deploy `blind_vault` to Solana Devnet using `anchor program deploy --provider.cluster devnet` and save deployed Program ID to `Anchor.toml`
+- [X] T015 Create live Devnet Day-1 connectivity script `scripts/gate-tee-connectivity.ts` verifying `verifyTeeRpcIntegrity("https://devnet-tee.magicblock.app")`, delegating `SealedStrategy` to validator `MTEWGuqxUpYZGFJQcp8tLN7x5v9BSeoFHYWQQ3n3xzo`, and proving `getAccountInfo` succeeds with `authToken` and throws `Access Denied` without it in `scripts/gate-tee-connectivity.ts`
+- [X] T016 [P] Configure Codama IDL client generation targeting `@solana/kit` and output TypeScript bindings in `lib/solana/generated/index.ts` via `scripts/generate-client.ts`
 
 ### Phase 3 Verification Command
 ```bash
