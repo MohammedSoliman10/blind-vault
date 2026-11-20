@@ -1,0 +1,21 @@
+[package]
+name = "blind_vault"
+version = "0.1.0"
+description = "Blind Vault on Solana Devnet"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "blind_vault"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+idl-build = ["anchor-lang/idl-build"]
+
+[dependencies]
+anchor-lang = "1.1.2"
+ephemeral-rollups-sdk = { version = "0.17.3", features = ["anchor", "access-control"] }

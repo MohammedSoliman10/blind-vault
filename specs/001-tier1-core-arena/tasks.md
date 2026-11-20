@@ -10,11 +10,11 @@
 
 **Goal**: Establish repository licensing, hackathon compliance tracking, Anchor 1.0 workspace, and Next.js 15 app structure.
 
-- [ ] T001 Create open-source MIT license file in `LICENSE`
-- [ ] T002 [P] Create repository `.gitignore` covering Rust target, Node modules, Next.js build, and `.env*.local` in `.gitignore`
-- [ ] T003 [P] Create `BUILD_LOG.md` establishing transparent separation of pre-hackathon work (Nov 20–26, 2026) from official hackathon weekend commits (Nov 27–28, 2026) in `BUILD_LOG.md`
-- [ ] T004 Initialize Anchor 1.0 workspace with program crate `programs/blind_vault` pinned to `anchor-lang = "1.1.2"` (matching verified `anchor-cli 1.1.2`) and `ephemeral-rollups-sdk = { version = "0.17.3", features = ["anchor", "access-control"] }` in `programs/blind_vault/Cargo.toml` and `Anchor.toml`, verifying `ephemeral-rollups-sdk` compatibility with `anchor-lang = "1.1.2"` via `cargo check` before proceeding to Phase 2
-- [ ] T005 [P] Initialize Next.js 15 App Router frontend using `npm` with Tailwind CSS and TypeScript in `package.json`, `tsconfig.json`, and `postcss.config.mjs`
+- [X] T001 Create open-source MIT license file in `LICENSE`
+- [X] T002 [P] Create repository `.gitignore` covering Rust target, Node modules, Next.js build, and `.env*.local` in `.gitignore`
+- [X] T003 [P] Create `BUILD_LOG.md` establishing transparent separation of pre-hackathon work (Nov 20–26, 2026) from official hackathon weekend commits (Nov 27–28, 2026) in `BUILD_LOG.md`
+- [X] T004 Initialize Anchor 1.0 workspace with program crate `programs/blind_vault` pinned to `anchor-lang = "1.1.2"` (matching verified `anchor-cli 1.1.2`) and `ephemeral-rollups-sdk = { version = "0.17.3", features = ["anchor", "access-control"] }` in `programs/blind_vault/Cargo.toml` and `Anchor.toml`, verifying `ephemeral-rollups-sdk` compatibility with `anchor-lang = "1.1.2"` via `cargo check` before proceeding to Phase 2
+- [X] T005 [P] Initialize Next.js 15 App Router frontend using `npm` with Tailwind CSS and TypeScript in `package.json`, `tsconfig.json`, and `postcss.config.mjs`
 
 ### Phase 1 Verification Command
 ```bash
