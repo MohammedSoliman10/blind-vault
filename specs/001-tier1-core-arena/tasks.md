@@ -62,10 +62,10 @@ npx ts-node scripts/gate-tee-connectivity.ts
 
 **Goal**: Implement the serverless backend infrastructure for gasless guest transactions, news sentiment scoring, and real-time event logging.
 
-- [ ] T017 [P] Create Supabase Postgres migration establishing `scraped_signals` (with 15-minute expiration) and `arena_events` tables with Realtime publication in `supabase/migrations/001_initial_schema.sql`
-- [ ] T018 [US1] Implement `/api/sponsor-tx` route enforcing `blind_vault` Program ID allowlist, per-IP rate limiting (10 req/min), fee-payer co-signing via Devnet Sponsor Keypair, and initial 1,000 Demo-USDC airdrop in `app/api/sponsor-tx/route.ts`
-- [ ] T019 [US4] Implement `/api/signal` route integrating 15-minute Supabase cache lookup, Firecrawl `/v1/scrape` in Markdown mode, Google AI Studio `gemini-3.8-flash` 0–100 catalyst scoring with Groq free-tier 429 fallback, and SHA-256 hash generation in `app/api/signal/route.ts`
-- [ ] T020 [P] Implement `/api/keepalive` route executing a lightweight heartbeat query to prevent the free-tier Supabase database from entering the 7-day inactivity pause in `app/api/keepalive/route.ts`, create the lightweight API verification test script in `tests/api.spec.ts`, and wire the `"test:api"` script in `package.json`
+- [X] T017 [P] Create Supabase Postgres migration establishing `scraped_signals` (with 15-minute expiration) and `arena_events` tables with Realtime publication in `supabase/migrations/001_initial_schema.sql`
+- [X] T018 [US1] Implement `/api/sponsor-tx` route enforcing `blind_vault` Program ID allowlist, per-IP rate limiting (10 req/min), fee-payer co-signing via Devnet Sponsor Keypair, and initial 1,000 Demo-USDC airdrop in `app/api/sponsor-tx/route.ts`
+- [X] T019 [US4] Implement `/api/signal` route integrating 15-minute Supabase cache lookup, Firecrawl `/v1/scrape` in Markdown mode, Google AI Studio `gemini-3.8-flash` 0–100 catalyst scoring with Groq free-tier 429 fallback, and SHA-256 hash generation in `app/api/signal/route.ts`
+- [X] T020 [P] Implement `/api/keepalive` route executing a lightweight heartbeat query to prevent the free-tier Supabase database from entering the 7-day inactivity pause in `app/api/keepalive/route.ts`, create the lightweight API verification test script in `tests/api.spec.ts`, and wire the `"test:api"` script in `package.json`
 
 ### Phase 4 Verification Command
 ```bash

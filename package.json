@@ -8,10 +8,12 @@
     "start": "next start",
     "lint": "next lint",
     "test": "ts-node --transpile-only tests/blind_vault.spec.ts",
+    "test:api": "ts-node -O '{\"module\":\"commonjs\",\"moduleResolution\":\"node\"}' --transpile-only tests/api.spec.ts",
     "generate:client": "ts-node --transpile-only scripts/generate-client.ts",
     "gate:tee": "ts-node --transpile-only scripts/gate-tee-connectivity.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.119.2",
     "next": "15.0.3",
     "react": "19.0.0-rc-66855b96-20241106",
     "react-dom": "19.0.0-rc-66855b96-20241106"
@@ -23,6 +25,7 @@
     "@magicblock-labs/ephemeral-rollups-sdk": "^0.20.0",
     "@solana/spl-token": "^0.4.15",
     "@solana/web3.js": "^1.99.0",
+    "@types/bs58": "^4.0.4",
     "@types/node": "^22.9.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
