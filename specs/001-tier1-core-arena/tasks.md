@@ -78,13 +78,13 @@ npm run test:api
 
 **Goal**: Assemble the single-page dark precision risk-console UI, integrating zero-wallet guest onboarding, X-Ray view, attack gauntlet, news trigger, and live proof tape.
 
-- [ ] T021 [P] [US1] Implement browser ephemeral keypair generation (`generateKeyPairSigner()`) and `localStorage` session state management in `lib/solana/guest-wallet.ts`
-- [ ] T022 [P] [US5] Implement Supabase Realtime client and WebSocket subscription handler for `arena_events` and live Presence in `lib/supabase/realtime.ts`
-- [ ] T023 [US1] Build `Header.tsx` displaying the active Guest Session status badge (1,000 Demo USDC, Gas Sponsored) with an unobtrusive "Connect Wallet" button in `components/Header.tsx`
-- [ ] T024 [US3] Build `XRayPanel.tsx` rendering the split-screen view: Private Enclave (Intel TDX sealed badge, "Peek Secret Strategy" trigger) vs. Public Vault (live balance, 20% cap, allowlist, 5% loss ceiling, Active/Halted pill) in `components/XRayPanel.tsx`
-- [ ] T025 [US2] Build `AttackGauntlet.tsx` featuring 4 red attack buttons ("Peek Secret Strategy", "Operator Attempts Depositor Withdrawal", "Swap 90% Into Unapproved Token", "Crash Market -6% to Trip Loss Breaker") and the "Emergency Depositor Exit" recovery button in `components/AttackGauntlet.tsx`
-- [ ] T026 [US4] Build `NewsTrigger.tsx` providing a news article URL input with 1-click sample URLs, catalyst score visualization (0–100 gauge), and trigger trade button in `components/NewsTrigger.tsx`
-- [ ] T027 [US5] Build `ProofTape.tsx` docked at the bottom of the arena, displaying a streaming ledger of transactions with timestamps, badges, decoded error reasons, and clickable Solana Explorer (`?cluster=devnet`) links in `components/ProofTape.tsx`
+- [X] T021 [P] [US1] Implement browser ephemeral keypair generation (`generateKeyPairSigner()`) and `localStorage` session state management in `lib/solana/guest-wallet.ts`
+- [X] T022 [P] [US5] Implement Supabase Realtime client and WebSocket subscription handler for `arena_events` and live Presence in `lib/supabase/realtime.ts`
+- [X] T023 [US1] Build `Header.tsx` displaying the active Guest Session status badge (1,000 Demo USDC, Gas Sponsored) with an unobtrusive "Connect Wallet" button in `components/Header.tsx`
+- [X] T024 [US3] Build `XRayPanel.tsx` rendering the split-screen view: Private Enclave (Intel TDX sealed badge, "Peek Secret Strategy" trigger) vs. Public Vault (live balance, 20% cap, allowlist, 5% loss ceiling, Active/Halted pill) in `components/XRayPanel.tsx`
+- [X] T025 [US2] Build `AttackGauntlet.tsx` featuring 4 red attack buttons ("Peek Secret Strategy", "Operator Attempts Depositor Withdrawal", "Swap 90% Into Unapproved Token", "Crash Market -6% to Trip Loss Breaker") and the "Emergency Depositor Exit" recovery button in `components/AttackGauntlet.tsx`
+- [X] T026 [US4] Build `NewsTrigger.tsx` providing a news article URL input with 1-click sample URLs, catalyst score visualization (0–100 gauge), and trigger trade button in `components/NewsTrigger.tsx`
+- [X] T027 [US5] Build `ProofTape.tsx` docked at the bottom of the arena, displaying a streaming ledger of transactions with timestamps, badges, decoded error reasons, and clickable Solana Explorer (`?cluster=devnet`) links in `components/ProofTape.tsx`
 - [ ] T028 Integrate components into the unified terminal layout in `app/page.tsx` and verify clean build via `npm run build`
 
 ### Phase 5 Verification Command

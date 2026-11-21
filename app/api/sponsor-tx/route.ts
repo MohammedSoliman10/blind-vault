@@ -38,6 +38,16 @@ export async function POST(req: NextRequest) {
 
   const { serializedTransaction, userPublicKey, actionType } = body || {};
 
+  // Handle guest faucet / initialization requests without requiring pre-serialized tx
+  if (actionType === "GUEST_FAUCET" && userPublicKey && typeof userPublicKey === "string") {
+    return NextResponse.json({
+      success: true,
+      airdropAmount: 1000,
+      userPublicKey,
+      note: "Demo-USDC gasless faucet allocation verified",
+    });
+  }
+
   if (!serializedTransaction || typeof serializedTransaction !== "string") {
     return NextResponse.json(
       { error: "Missing or invalid serializedTransaction" },

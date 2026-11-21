@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS arena_events (
 
 CREATE INDEX IF NOT EXISTS idx_arena_events_vault ON arena_events(vault_pubkey, created_at DESC);
 
--- Enable Supabase Realtime publication on arena_events
+-- 3. Enable Supabase Realtime publication on arena_events
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -43,5 +43,22 @@ BEGIN
     WHERE pubname = 'supabase_realtime' AND tablename = 'arena_events'
   ) THEN
     ALTER PUBLICATION supabase_realtime ADD TABLE arena_events;
+  END IF;
+END $$;
+
+-- 4. Enable Row Level Security (RLS) & public read access for live Proof Tape
+ALTER TABLE scraped_signals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE arena_events ENABLE ROW LEVEL SECURITY;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'arena_events' AND policyname = 'Public read arena_events'
+  ) THEN
+    CREATE POLICY "Public read arena_events"
+      ON arena_events
+      FOR SELECT
+      USING (true);
   END IF;
 END $$;

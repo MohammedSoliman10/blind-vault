@@ -30,10 +30,11 @@ import {
 import { resetRateLimitStore } from "../lib/server/rate-limit";
 import { DEFAULT_PROGRAM_ID, validateTransactionAllowlist } from "../lib/server/solana";
 import { POST as sponsorTxHandler } from "../app/api/sponsor-tx/route";
-import { POST as signalHandler, isSsrfTarget } from "../app/api/signal/route";
+import { POST as signalHandler } from "../app/api/signal/route";
+import { isSsrfTarget } from "../lib/server/ssrf";
 import { GET as keepaliveHandler } from "../app/api/keepalive/route";
 
-process.env.NODE_ENV = "test";
+(process.env as any).NODE_ENV = "test";
 
 function createMockRequest(url: string, method: string, body?: any, headers?: Record<string, string>): NextRequest {
   const reqInit: any = {
