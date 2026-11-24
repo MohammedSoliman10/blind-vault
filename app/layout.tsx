@@ -8,7 +8,7 @@ import "@fontsource/ibm-plex-mono/700.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://blind-vault.solana.app"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://blind-vault.vercel.app"),
   title: "Blind Vault | Solana Liquid Risk Engine",
   description:
     "Blind Vault — A hedge fund you can verify, not see. Private AI strategy in Intel TDX, public risk guardrails on Solana L1.",
