@@ -242,11 +242,15 @@ export function ProofLedgerView({ events, onClearTape }: ProofLedgerViewProps) {
                         <div className="sm:col-span-2 space-y-1.5 border border-line-soft p-3">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <span className="type-label text-text-2">Signal hash (SHA-256)</span>
-                            <span className="type-label text-accent">Matched on-chain strategy state</span>
+                            <span className="type-label text-accent">
+                              {evt.details?.hashMatched ? "Verified on-chain" : "Generated SHA-256"}
+                            </span>
                           </div>
                           <span className="type-data mt-1 block break-all font-mono text-xs">{signalHash}</span>
                           <span className="type-small block text-[11px] text-text-2">
-                            Verified against SealedStrategy.last_signal_hash cryptographic commit
+                            {evt.details?.hashMatched
+                              ? "Verified against SealedStrategy.last_signal_hash cryptographic commit on-chain"
+                              : "Payload hash computed for tamper-proof evaluation"}
                           </span>
                         </div>
                       )}

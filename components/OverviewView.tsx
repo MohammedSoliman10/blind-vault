@@ -26,6 +26,7 @@ import { cx } from "./ui/cx";
 
 interface OverviewViewProps {
   actorAddress: string;
+  isExternalWallet?: boolean;
   isHalted: boolean;
   tvlUsdc: number;
   quoteBalance?: number;
@@ -54,6 +55,7 @@ function Row({ label, value, accent }: { label: string; value: React.ReactNode; 
 
 export function OverviewView({
   actorAddress,
+  isExternalWallet,
   isHalted,
   tvlUsdc,
   quoteBalance,
@@ -178,6 +180,13 @@ export function OverviewView({
                 />
               }
             />
+
+            {isExternalWallet && (
+              <div className="flex items-center justify-between border border-blue/30 bg-blue/10 px-3 py-2 text-xs text-blue">
+                <span>External wallet connected ({actorAddress.slice(0, 4)}...{actorAddress.slice(-4)})</span>
+                <span className="font-semibold">Sandbox ops routed via Guest Keypair</span>
+              </div>
+            )}
 
             <div className="space-y-4">
               <div className="flex items-baseline justify-between gap-4">

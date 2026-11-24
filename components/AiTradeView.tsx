@@ -48,6 +48,7 @@ export function AiTradeView({ actorAddress, onTradeSuccess, onActionResult }: Ai
     cached: boolean;
     txSignature: string | null;
     explorerUrl: string;
+    hashMatched?: boolean;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -73,6 +74,7 @@ export function AiTradeView({ actorAddress, onTradeSuccess, onActionResult }: Ai
         cached: res.cached,
         txSignature: res.txSignature,
         explorerUrl: res.explorerUrl,
+        hashMatched: res.hashMatched,
       });
 
       setActiveStep(4);
@@ -296,17 +298,25 @@ export function AiTradeView({ actorAddress, onTradeSuccess, onActionResult }: Ai
                 <div className="space-y-2.5 border border-line p-4">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <span className="type-label text-text-2">Cryptographic signal hash</span>
-                    <span className="type-label text-accent">SHA-256 validated</span>
+                    <span className="type-label text-accent">
+                      {result.hashMatched ? "SHA-256 validated & verified on-chain" : "SHA-256 validated"}
+                    </span>
                   </div>
                   <div className="type-data select-all break-all border border-line-soft p-2.5 font-mono text-xs">
                     {result.signalHash}
                   </div>
                   <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line-soft pt-2.5">
                     <span className="type-small text-text-2">SealedStrategy.lastSignalHash:</span>
-                    <span className="type-label inline-flex items-center gap-1.5 text-accent">
-                      <ShieldCheck className="h-3.5 w-3.5 text-accent" {...ICON} />
-                      Anchored to On-Chain Strategy State
-                    </span>
+                    {result.hashMatched ? (
+                      <span className="type-label inline-flex items-center gap-1.5 text-accent">
+                        <ShieldCheck className="h-3.5 w-3.5 text-accent" {...ICON} />
+                        Verified on-chain (Anchored to Enclave Strategy State)
+                      </span>
+                    ) : (
+                      <span className="type-label inline-flex items-center gap-1.5 text-text-2">
+                        Pending Enclave Verification
+                      </span>
+                    )}
                   </div>
                 </div>
 

@@ -132,9 +132,10 @@ export async function requestDemoFaucet(guestPubkey: PublicKey): Promise<{
     const newBalance = currentBalance + DEFAULT_GUEST_USDC;
     setGuestDemoBalance(newBalance);
 
+    const txSignature = data.txSignature || data.signature;
     return {
       success: true,
-      signature: data.signature,
+      signature: txSignature,
       newBalance,
     };
   } catch (err: any) {

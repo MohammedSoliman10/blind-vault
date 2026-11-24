@@ -144,7 +144,7 @@ export function AttackLabView({
       const result = await dispatchCustomSwap(tradeSizePct, tvlUsdc, actorAddress);
       onActionResult(result);
       if (result.success && !result.blocked) {
-        onCustomSwapSuccess?.(12.5);
+        onCustomSwapSuccess?.(0);
       }
       if (result.blocked && tradeSizePct > 20) {
         onMilestoneComplete?.("cap20");
@@ -339,7 +339,7 @@ export function AttackLabView({
         {/* One-click probes */}
         <section aria-label="One-click exploits and adversarial probes">
           <h3 className="type-label mb-3 text-text-2">One-click exploits and adversarial probes</h3>
-          <div className="grid grid-cols-1 gap-px border border-line bg-line-soft sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-px border border-line bg-line-soft sm:grid-cols-2">
             {attackScenarios.map((sc, i) => {
               const selected = selectedRow === sc.id;
               return (

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Connection, PublicKey } from "@solana/web3.js";
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { checkRateLimit } from "../../../lib/server/rate-limit";
 import {
   validateTransactionAllowlist,
@@ -117,6 +118,7 @@ export async function POST(req: NextRequest) {
         txSignature: tradeResult.signature,
         explorerUrl: tradeResult.explorerUrl,
         tradeAmountUsdc: tradeResult.tradeAmountUsdc,
+        hashMatched: tradeResult.hashMatched,
       });
     } catch (err: any) {
       console.error("Sponsored trade execution failure:", err);
@@ -149,6 +151,7 @@ export async function POST(req: NextRequest) {
         success: true,
         txSignature: shockResult.signature,
         explorerUrl: shockResult.explorerUrl,
+        rawLogs: shockResult.rawLogs,
       });
     } catch (err: any) {
       console.error("Market shock on-chain failure:", err);
@@ -165,6 +168,21 @@ export async function POST(req: NextRequest) {
       { error: "Missing or invalid serializedTransaction" },
       { status: 400 }
     );
+  }
+
+  // Auto-mint demo tokens to user ATA if missing on Devnet for DEPOSIT action
+  if (actionType === "DEPOSIT" && userPublicKey && sponsorKeypair) {
+    try {
+      const userPk = new PublicKey(userPublicKey);
+      const usdcMint = new PublicKey(process.env.DEMO_USDC_MINT || "7vhu7vaAnwXpF1pt2e6o157zaL6jEvsoRN3gqQz6s5i4");
+      const userAta = getAssociatedTokenAddressSync(usdcMint, userPk);
+      const ataAcc = await connection.getAccountInfo(userAta);
+      if (!ataAcc) {
+        await mintDemoTokensToUser(connection, sponsorKeypair, userPk, 1000);
+      }
+    } catch (mintErr) {
+      console.warn("Auto-mint on deposit check notice:", mintErr);
+    }
   }
 
   // 3. Strict Program ID Allowlist Inspection

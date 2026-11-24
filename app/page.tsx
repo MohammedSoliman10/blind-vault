@@ -186,20 +186,44 @@ export default function ArenaPage() {
     setDemoBalance(session.demoUsdcBalance);
     hydrateOnChainState(session.publicKeyBase58);
 
-    // Initial session boot record
-    emitArenaEvent({
-      eventType: "GUEST_FAUCET",
-      status: "SUCCESS",
-      actor: session.publicKeyBase58,
-      vault: DEPLOYED_PROGRAM_ID,
-      txSignature: null,
-      errorMessage: "Zero-Wallet Guest Session ready with 1,000 Demo USDC & sponsored gas.",
-      timestamp: new Date().toISOString(),
-      details: {
-        whatYouTried: "Landed on Blind Vault Liquid Arena in Zero-Wallet Guest Mode.",
-        whyItHappened: "Instant ephemeral keypair provisioned in-browser with gas sponsorship.",
-      },
-    });
+    if (session.isNew) {
+      // Auto-trigger real on-chain GUEST_FAUCET minting on first guest session
+      requestDemoFaucet(session.publicKey).then((faucetRes) => {
+        if (faucetRes.success && faucetRes.newBalance !== undefined) {
+          setDemoBalance(faucetRes.newBalance);
+          hydrateOnChainState(session.publicKeyBase58);
+          emitArenaEvent({
+            eventType: "GUEST_FAUCET",
+            status: "SUCCESS",
+            actor: session.publicKeyBase58,
+            vault: DEPLOYED_PROGRAM_ID,
+            txSignature: faucetRes.signature || null,
+            errorMessage: "First-session on-chain faucet minted +1,000 Demo USDC to guest identity.",
+            timestamp: new Date().toISOString(),
+            details: {
+              whatYouTried: "Landed on Blind Vault Liquid Arena in Zero-Wallet Guest Mode.",
+              whyItHappened: "Instant ephemeral keypair provisioned in-browser with on-chain faucet & gas sponsorship.",
+              txSignature: faucetRes.signature || null,
+            },
+          });
+        }
+      });
+    } else {
+      // Initial session boot record
+      emitArenaEvent({
+        eventType: "GUEST_FAUCET",
+        status: "SUCCESS",
+        actor: session.publicKeyBase58,
+        vault: DEPLOYED_PROGRAM_ID,
+        txSignature: null,
+        errorMessage: "Zero-Wallet Guest Session ready with 1,000 Demo USDC & sponsored gas.",
+        timestamp: new Date().toISOString(),
+        details: {
+          whatYouTried: "Landed on Blind Vault Liquid Arena in Zero-Wallet Guest Mode.",
+          whyItHappened: "Instant ephemeral keypair provisioned in-browser with gas sponsorship.",
+        },
+      });
+    }
 
     // Real-time telemetry subscription
     const unsubscribeEvents = subscribeToArenaEvents((newEvent) => {
@@ -276,9 +300,14 @@ export default function ArenaPage() {
           status: "SUCCESS",
           actor: guestPubkey,
           vault: DEPLOYED_PROGRAM_ID,
-          txSignature: null,
+          txSignature: res.signature || null,
           errorMessage: "Faucet airdropped +1,000 Demo USDC to guest identity.",
           timestamp: new Date().toISOString(),
+          details: {
+            whatYouTried: "Requested +1,000 Demo USDC on-chain guest faucet airdrop.",
+            whyItHappened: "Minted 1,000 Demo USDC directly on Solana Devnet to user ATA.",
+            txSignature: res.signature || null,
+          },
         });
       } else {
         alert(res.error || "Faucet failed");
@@ -526,6 +555,7 @@ export default function ArenaPage() {
         {currentView === "overview" && (
           <OverviewView
             actorAddress={activeActorPubkey}
+            isExternalWallet={!!externalWalletPubkey}
             isHalted={isHalted}
             tvlUsdc={tvlUsdc}
             quoteBalance={quoteBalance}

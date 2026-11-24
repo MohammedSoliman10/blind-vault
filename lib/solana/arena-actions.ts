@@ -22,7 +22,7 @@ import {
   getAssociatedTokenAddressSync,
 } from "@solana/spl-token";
 import { emitArenaEvent, getExplorerUrl, isRealSolanaTxSignature } from "../supabase/realtime";
-import { getOrCreateGuestWallet } from "./guest-wallet";
+import { getOrCreateGuestWallet, requestDemoFaucet } from "./guest-wallet";
 
 export const DEPLOYED_PROGRAM_ID =
   process.env.NEXT_PUBLIC_PROGRAM_ID || "6pDCJuSSzoQCJLtySBf5DqEkSmoFBSDExzjmxWsaDD5N";
@@ -37,7 +37,7 @@ export const DEMO_TARGET_MINT =
 
 export const SPONSOR_PUBKEY = "3a23o9KvE5aiJ9rC5F1BpuzAjrSjL2627QgtKBYzwbrK";
 export const DEMO_VAULT_PDA = "811BEdAqhr2aUWo59nZ4JpY84AMrWkrnVgnesBjhDVKp";
-export const DEMO_STRATEGY_PDA = "3JcaKPWwKaRbVYAY178bk42qfqrkKSY2aWu6Y9gwmwG2";
+export const DEMO_STRATEGY_PDA = "AAQunvudNxbpcLUz2rbTuV3Z6Ga7PQbni3Q7n6xW275A";
 export const DEMO_QUOTE_VAULT_PDA = "4YnudEYRaXD3bquPBe1fYLPPBbwgxXuckNucTZtReRnE";
 export const DEMO_TARGET_VAULT_PDA = "2b1ptxtiVBVF6PqJMV6rA7mEo7V5ym7tRotFUPWiKsUL";
 export const DEMO_POOL_PDA = "47ttsGtGvCqcxKydZWPkzNmfwW6xe8UbuyDMiiQkFwBF";
@@ -76,7 +76,8 @@ function u64ToBuffer(val: bigint | number): Buffer {
  * Without an authorized Intel TDX JWT attestation token, the hardware PER ACL rejects inspection.
  */
 export async function dispatchAttackPeekStrategy(actorPubkey: string): Promise<ActionResult> {
-  let statusNote = "HTTP 401 Unauthorized / Intel TDX ACL Denied";
+  let statusNote = "Access Denied by Intel TDX PER: value is null (Hardware ACL Withheld)";
+  let isBlocked = true;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 4000);
   let timedOut = false;
@@ -94,8 +95,21 @@ export async function dispatchAttackPeekStrategy(actorPubkey: string): Promise<A
       }),
     });
 
-    if (!res.ok) {
+    if (res.status === 401 || res.status === 403 || !res.ok) {
+      isBlocked = true;
       statusNote = `HTTP ${res.status} Unauthorized / Intel TDX ACL Denied`;
+    } else {
+      const json = await res.json();
+      if (json?.error) {
+        isBlocked = true;
+        statusNote = `Intel TDX PER Denial: ${json.error.message || "Unauthorized"}`;
+      } else if (json?.result?.value === null) {
+        isBlocked = true;
+        statusNote = "Access Denied by Intel TDX PER: value is null (Hardware ACL Withheld)";
+      } else if (json?.result?.value) {
+        isBlocked = false;
+        statusNote = "Warning: Account data returned (ACL not active)";
+      }
     }
   } catch (err: any) {
     if (err?.name === "AbortError" || controller.signal.aborted) {
@@ -118,12 +132,31 @@ export async function dispatchAttackPeekStrategy(actorPubkey: string): Promise<A
     };
   }
 
-  const whatYouTried = "You attempted to read the private strategy thresholds directly from the delegated SealedStrategy PDA inside MagicBlock Intel TDX hardware.";
+  if (!isBlocked) {
+    return {
+      success: false,
+      blocked: false,
+      whatYouTried: `You attempted to read the private strategy thresholds from the Intel TDX PER permissioned account (${DEMO_STRATEGY_PDA}).`,
+      whyItHappened: "Account data was returned in plaintext. Hardware ACL is not enforcing restriction.",
+      errorCode: "AclNotActive",
+      errorMessage: "Warning: Account data returned in plaintext. [AclNotActive]",
+      txSignature: null,
+      explorerUrl: getExplorerUrl(null, DEMO_STRATEGY_PDA),
+      rawLogs: [
+        `Connecting to MagicBlock PER at ${MAGICBLOCK_TEE_RPC}...`,
+        `Target Account: ${DEMO_STRATEGY_PDA}`,
+        `Hardware Enclave Validator: ${MAGICBLOCK_VALIDATOR}`,
+        `Status: ${statusNote}`,
+      ],
+    };
+  }
+
+  const whatYouTried = `You attempted to read the private strategy thresholds from the Intel TDX PER permissioned account (${DEMO_STRATEGY_PDA}) inside MagicBlock Intel TDX hardware.`;
   const whyItHappened = `Blocked by Intel TDX Hardware Access Control List (${statusNote}). Alpha parameters (min_score=75, min_confidence=30, trade_size=1500 bps) remain AES-128-XTS encrypted in enclave memory.`;
 
   const result: ActionResult = {
     success: false,
-    blocked: true,
+    blocked: isBlocked,
     proofType: "ENCLAVE_ACL",
     whatYouTried,
     whyItHappened,
@@ -136,7 +169,7 @@ export async function dispatchAttackPeekStrategy(actorPubkey: string): Promise<A
       `Target PDA: ${DEMO_STRATEGY_PDA}`,
       `Hardware Enclave Validator: ${MAGICBLOCK_VALIDATOR}`,
       `Security Protocol: Intel TDX Quote Attestation + SGX/TDX Access Control`,
-      `Result: 401 Unauthorized - Access Denied by Enclave ACL`,
+      `Result: ${statusNote}`,
     ],
   };
 
@@ -267,7 +300,10 @@ export async function dispatchAttackOversizedSwap(actorPubkey: string): Promise<
   const conn = getSolanaConnection();
   const programId = new PublicKey(DEPLOYED_PROGRAM_ID);
   const vaultPda = new PublicKey(DEMO_VAULT_PDA);
-  const strategyPda = new PublicKey(DEMO_STRATEGY_PDA);
+  const [strategyPda] = PublicKey.findProgramAddressSync(
+    [Buffer.from("strategy"), vaultPda.toBuffer()],
+    programId
+  );
   const quoteVaultPda = new PublicKey(DEMO_QUOTE_VAULT_PDA);
   const targetVaultPda = new PublicKey(DEMO_TARGET_VAULT_PDA);
   const demoPoolPda = new PublicKey(DEMO_POOL_PDA);
@@ -367,10 +403,14 @@ export async function dispatchAttackPromptInjection(actorPubkey: string): Promis
   const conn = getSolanaConnection();
   const programId = new PublicKey(DEPLOYED_PROGRAM_ID);
   const vaultPda = new PublicKey(DEMO_VAULT_PDA);
-  const strategyPda = new PublicKey(DEMO_STRATEGY_PDA);
+  const [strategyPda] = PublicKey.findProgramAddressSync(
+    [Buffer.from("strategy"), vaultPda.toBuffer()],
+    programId
+  );
   const quoteVaultPda = new PublicKey(DEMO_QUOTE_VAULT_PDA);
-  const targetVaultPda = new PublicKey(DEMO_TARGET_VAULT_PDA);
-  const demoPoolPda = new PublicKey(DEMO_POOL_PDA);
+  // Genuinely unapproved mint, target vault, and rogue pool to test allowlist rejection
+  const unapprovedTargetVault = Keypair.generate().publicKey;
+  const unapprovedDemoPool = Keypair.generate().publicKey;
   const poolQuoteVault = new PublicKey(DEMO_POOL_QUOTE_VAULT_PDA);
   const poolBaseVault = new PublicKey(DEMO_POOL_BASE_VAULT_PDA);
   const sponsor = new PublicKey(SPONSOR_PUBKEY);
@@ -392,8 +432,8 @@ export async function dispatchAttackPromptInjection(actorPubkey: string): Promis
         { pubkey: vaultPda, isSigner: false, isWritable: true },
         { pubkey: strategyPda, isSigner: false, isWritable: true },
         { pubkey: quoteVaultPda, isSigner: false, isWritable: true },
-        { pubkey: targetVaultPda, isSigner: false, isWritable: true },
-        { pubkey: demoPoolPda, isSigner: false, isWritable: true },
+        { pubkey: unapprovedTargetVault, isSigner: false, isWritable: true },
+        { pubkey: unapprovedDemoPool, isSigner: false, isWritable: true },
         { pubkey: poolQuoteVault, isSigner: false, isWritable: true },
         { pubkey: poolBaseVault, isSigner: false, isWritable: true },
         { pubkey: caller.publicKey, isSigner: true, isWritable: true },
@@ -416,13 +456,13 @@ export async function dispatchAttackPromptInjection(actorPubkey: string): Promis
         if (errorLog.includes("ExceedsMaxPositionCap") || errorLog.includes("6001")) {
           errorCode = "ExceedsMaxPositionCap";
           errorMessage = `Blocked by Solana L1 Preflight: ${errorLog} [ExceedsMaxPositionCap (6001)]`;
-        } else if (errorLog.includes("UnapprovedMint") || errorLog.includes("6003")) {
+        } else if (errorLog.includes("UnapprovedMint") || errorLog.includes("6002")) {
           errorCode = "UnapprovedMint";
-          errorMessage = `Blocked by Solana L1 Preflight: Target mint not allowlisted in VaultState [UnapprovedMint (6003)]`;
+          errorMessage = `Blocked by Solana L1 Preflight: Target mint not allowlisted in VaultState [UnapprovedMint (6002)]`;
         } else if (errorLog.includes("AccountOwnedByWrongProgram") || errorLog.includes("3007")) {
-          errorCode = "ExceedsMaxPositionCap";
+          errorCode = "AccountOwnedByWrongProgram";
           errorMessage =
-            "Blocked by Solana L1 Risk Firewall: Malicious 95% trade order rejected by invariant check (20% cap & allowlisted mints only). [ExceedsMaxPositionCap (6001)]";
+            "Blocked by Solana L1 Preflight: Target token account owned by wrong program or unapproved token account [AccountOwnedByWrongProgram (3007)]";
         }
       }
     }
@@ -485,13 +525,13 @@ export async function dispatchAttackCrashBreaker(actorPubkey: string): Promise<A
     });
 
     const data = await res.json();
-    if (res.ok && data.txSignature) {
-      txSignature = data.txSignature;
-      rawLogs = [
+    if (res.ok) {
+      txSignature = data.txSignature || null;
+      rawLogs = data.rawLogs || [
         `Instruction: simulate_market_move(price_drop_bps: 600)`,
         `Program log: Circuit breaker activated: Vault is halted due to 600 bps drawdown`,
-        `Solana Devnet Signature: ${txSignature}`,
-        `Status: VaultState.is_halted = true (Solana L1)`,
+        `Preflight simulation confirmed on Solana Devnet`,
+        `Status: VaultState.is_halted = true (Session Guardrail Active)`,
       ];
     }
   } catch (err: any) {
@@ -551,6 +591,19 @@ export async function dispatchDeposit(amount: number, actorPubkey: string): Prom
     programId
   );
 
+  // Auto-trigger on-chain faucet minting if guest ATA does not exist on Devnet
+  try {
+    const ataAccount = await conn.getAccountInfo(guestAta);
+    if (!ataAccount) {
+      const faucetRes = await requestDemoFaucet(userPubkey);
+      if (!faucetRes.success) {
+        throw new Error(faucetRes.error || "Failed to provision guest demo USDC on Devnet");
+      }
+    }
+  } catch (err: any) {
+    console.warn("Pre-deposit ATA verification notice:", err.message);
+  }
+
   const rawAmount = BigInt(Math.floor(amount * 1_000_000));
   const depDisc = Buffer.from([242, 35, 198, 137, 82, 225, 242, 182]);
   const depAmount = u64ToBuffer(rawAmount);
@@ -595,8 +648,8 @@ export async function dispatchDeposit(amount: number, actorPubkey: string): Prom
 
   const txSignature = data.txSignature;
   const explorerUrl = `https://explorer.solana.com/tx/${txSignature}?cluster=devnet`;
-  const whatYouTried = `You deposited $${amount.toFixed(2)} Demo USDC into the Blind Vault on Solana Devnet.`;
-  const whyItHappened = `Deposit confirmed on Solana Devnet: Minted ${amount.toFixed(2)} shares at current NAV. Tx: ${txSignature}`;
+  const whatYouTried = `You deposited $${amount.toFixed(2)} Demo USDC into the Blind Vault on Solana Devnet (via Guest Sandbox Keypair).`;
+  const whyItHappened = `Deposit confirmed on Solana Devnet: Minted ${amount.toFixed(2)} shares at current NAV (settled via sponsored Guest Sandbox keypair). Tx: ${txSignature}`;
 
   const result: ActionResult = {
     success: true,
@@ -655,6 +708,19 @@ export async function dispatchWithdraw(
     programId
   );
 
+  // Auto-trigger on-chain faucet minting if guest ATA does not exist on Devnet
+  try {
+    const ataAccount = await conn.getAccountInfo(guestAta);
+    if (!ataAccount) {
+      const faucetRes = await requestDemoFaucet(userPubkey);
+      if (!faucetRes.success) {
+        throw new Error(faucetRes.error || "Failed to provision guest demo USDC on Devnet");
+      }
+    }
+  } catch (err: any) {
+    console.warn("Pre-deposit ATA verification notice:", err.message);
+  }
+
   const rawShares = exactRawShares !== undefined ? exactRawShares : BigInt(Math.floor(amount * 1_000_000));
   const withDisc = Buffer.from([183, 18, 70, 156, 148, 109, 161, 34]);
   const withAmount = u64ToBuffer(rawShares);
@@ -698,8 +764,8 @@ export async function dispatchWithdraw(
 
   const txSignature = data.txSignature;
   const explorerUrl = `https://explorer.solana.com/tx/${txSignature}?cluster=devnet`;
-  const whatYouTried = `You redeemed ${amount.toFixed(2)} vault shares on Solana Devnet.`;
-  const whyItHappened = `Withdrawal confirmed on Solana Devnet: Burned ${amount.toFixed(2)} shares and transferred Quote USDC back to your wallet. Tx: ${txSignature}`;
+  const whatYouTried = `You redeemed ${amount.toFixed(2)} vault shares on Solana Devnet (via Guest Sandbox Keypair).`;
+  const whyItHappened = `Withdrawal confirmed on Solana Devnet: Burned ${amount.toFixed(2)} shares and transferred Quote USDC back to your sandbox wallet. Tx: ${txSignature}`;
 
   const result: ActionResult = {
     success: true,
@@ -844,6 +910,7 @@ export async function evaluateAndExecuteSignal(
   explorerUrl: string;
   whatYouTried: string;
   whyItHappened: string;
+  hashMatched?: boolean;
 }> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 14000);
@@ -877,6 +944,7 @@ export async function evaluateAndExecuteSignal(
   // Execute real bounded trade on Devnet co-signed by sponsor strategist
   let txSignature: string | null = null;
   let isVaultHalted = false;
+  let hashMatched = false;
   try {
     const tradeRes = await fetch("/api/sponsor-tx", {
       method: "POST",
@@ -891,6 +959,7 @@ export async function evaluateAndExecuteSignal(
     const tradeData = await tradeRes.json();
     if (tradeRes.ok && tradeData.txSignature) {
       txSignature = tradeData.txSignature;
+      hashMatched = !!tradeData.hashMatched;
     } else if (tradeData?.details?.includes("Vault is halted") || tradeData?.error?.includes("Vault is halted")) {
       isVaultHalted = true;
     }
@@ -925,6 +994,7 @@ export async function evaluateAndExecuteSignal(
       positionPct: tradeSizePct,
       signalHash,
       txSignature,
+      hashMatched,
     },
   });
 
@@ -939,6 +1009,7 @@ export async function evaluateAndExecuteSignal(
     explorerUrl,
     whatYouTried,
     whyItHappened,
+    hashMatched,
   };
 }
 

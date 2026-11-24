@@ -252,6 +252,7 @@ export function Header({
                 {connected ? truncatedExternal : truncatedGuest}
               </span>
               {!connected && <Chip tone="accent">Guest</Chip>}
+              {connected && <Chip tone="ghost">External (Sandbox Routing)</Chip>}
               <span className="flex items-center normal-case tracking-normal text-accent">
                 <span>$</span>
                 <NumberFlow

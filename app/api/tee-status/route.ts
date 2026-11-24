@@ -13,7 +13,7 @@ const TEE_RPC_URL =
   process.env.NEXT_PUBLIC_MAGICBLOCK_TEE_RPC_URL || "https://devnet-tee.magicblock.app";
 const TEE_VALIDATOR =
   process.env.NEXT_PUBLIC_MAGICBLOCK_VALIDATOR || "MTEWGuqxUpYZGFJQcp8tLN7x5v9BSeoFHYWQQ3n3xzo";
-const STRATEGY_PDA = "3JcaKPWwKaRbVYAY178bk42qfqrkKSY2aWu6Y9gwmwG2";
+const STRATEGY_PDA = "AAQunvudNxbpcLUz2rbTuV3Z6Ga7PQbni3Q7n6xW275A";
 
 export async function GET() {
   const now = Date.now();
@@ -36,8 +36,8 @@ export async function GET() {
     }
   }
 
-  // Probe the delegated SealedStrategy PDA on the TEE without an auth token to demonstrate ACL denial
-  let aclBlocked = true;
+  // Probe the delegated SealedStrategy PDA on the TEE without an auth token to check ACL denial
+  let aclBlocked = false;
   let tdxAccountDataLength = 0;
   try {
     const res = await fetch(TEE_RPC_URL, {
@@ -51,12 +51,22 @@ export async function GET() {
       }),
       signal: AbortSignal.timeout(4000),
     });
-    const json = await res.json();
-    if (json?.result?.value) {
-      tdxAccountDataLength = json.result.value.data?.[0]?.length || 0;
+    if (res.status === 401 || res.status === 403 || !res.ok) {
+      aclBlocked = true;
+      tdxAccountDataLength = 0;
+    } else {
+      const json = await res.json();
+      if (json?.error || json?.result?.value === null) {
+        aclBlocked = true;
+        tdxAccountDataLength = 0;
+      } else if (json?.result?.value) {
+        aclBlocked = false;
+        tdxAccountDataLength = json.result.value.data?.[0]?.length || 0;
+      }
     }
   } catch (err) {
     aclBlocked = true;
+    tdxAccountDataLength = 0;
   }
 
   return NextResponse.json({

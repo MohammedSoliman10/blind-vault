@@ -11,6 +11,7 @@
 - **Program Deployment Transaction:** [`5Mhb61xyMrXtccnDTKy7VVbFq3UPTTRgyGYAf1AVEAqNuDqfKL8NBNbM1njqfhSHEqqgLW25emCNET17jRHF1cYy`](https://explorer.solana.com/tx/5Mhb61xyMrXtccnDTKy7VVbFq3UPTTRgyGYAf1AVEAqNuDqfKL8NBNbM1njqfhSHEqqgLW25emCNET17jRHF1cYy?cluster=devnet)
 - **MagicBlock TEE Ephemeral Validator:** `MTEWGuqxUpYZGFJQcp8tLN7x5v9BSeoFHYWQQ3n3xzo` (`https://devnet-tee.magicblock.app`)
 - **Sealed Strategy PDA:** `3JcaKPWwKaRbVYAY178bk42qfqrkKSY2aWu6Y9gwmwG2`
+- **Intel TDX PER Permissioned Account:** [`AAQunvudNxbpcLUz2rbTuV3Z6Ga7PQbni3Q7n6xW275A`](https://explorer.solana.com/address/AAQunvudNxbpcLUz2rbTuV3Z6Ga7PQbni3Q7n6xW275A?cluster=devnet)
 
 ---
 
@@ -24,7 +25,7 @@
 Blind Vault decouples **alpha execution** from **custody & risk limits**:
 - **Intel TDX Confidential Enclave (MagicBlock PER):** The proprietary AI strategy, model weights, and real-time catalyst signals remain completely confidential. Hardware-level memory encryption and remote attestation prevent anyone (even node operators) from inspecting strategy parameters.
 - **Solana L1 Risk Firewall:** The Anchor program on Solana L1 holds the funds and enforces mathematical risk invariants. No matter what the off-chain or enclave AI decides, L1 will reject any trade that violates:
-  - **Max single-position concentration caps** (e.g., max 25% allocation).
+  - **Max single-position concentration caps** (e.g., max 20% allocation).
   - **Approved asset allowlists** (preventing rug-pull swaps into unapproved tokens).
   - **Drawdown circuit breakers** (freezing trading when drawdown thresholds are breached).
   - **Unconditional depositor emergency exit** (users can withdraw at any time directly on L1).
@@ -56,11 +57,11 @@ flowchart TD
     LLM -->|3. Evaluate Signal & Generate Order| SealedPDA
     Attestation -->|Hardware ACL Protection (401 on Unauthorized Peek)| SealedPDA
     SealedPDA -->|4. Propose Bounded Trade + Signal Hash| Firewall
-    Firewall -->|Check 1: Position Cap <= 25%| TargetVault
+    Firewall -->|Check 1: Position Cap <= 20%| TargetVault
     Firewall -->|Check 2: Target Mint Allowlisted?| TargetVault
     Firewall -->|Check 3: Circuit Breaker Normal?| TargetVault
     Firewall -->|Check 4: Signal Hash Match| AuditLog
-    User -->|Emergency Exit (Direct L1 Call)| QuoteVault
+    User -->|Emergency Exit: withdraw (Direct L1 Call)| QuoteVault
 ```
 
 ---
@@ -75,7 +76,7 @@ In accordance with hackathon submission guidelines, all pre-existing scaffolding
 | **Frontend Framework Scaffolding** | Before | Next.js 15, TailwindCSS skeleton, initial UI layouts, and basic `@solana/wallet-adapter` provider. |
 | **Real Devnet Transaction Pipeline** | **During** | Complete overhaul of `lib/solana/arena-actions.ts`: eliminated client-side mocks, connected Anchor IDL client, built real atomic Devnet transactions (Deposit, Withdraw, Bounded Trade, Emergency Exit) signed via gasless sponsor relayer. |
 | **Live On-Chain Hydration** | **During** | Live RPC queries for `VaultState`, `DepositorPosition`, and token accounts. Dynamic NAV calculation and real-time USDC vs. Target Token allocation bars. |
-| **Interactive Attack Lab (L1 Autopsy)** | **During** | Built live Devnet transaction simulation engine (`simulateTransaction`) to generate real Anchor error rollbacks (`ExceedsMaxPositionCap`, `UnauthorizedSigner`, `DrawdownCircuitBreakerActive`) with raw Solana validator logs. |
+| **Interactive Attack Lab (L1 Autopsy)** | **During** | Built live Devnet transaction simulation engine (`simulateTransaction`) to generate real Anchor error rollbacks (`ExceedsMaxPositionCap`, `UnauthorizedDepositor`, `DailyDrawdownHalted` / `VaultIsHalted`) with raw Solana validator logs. |
 | **Prompt-Injected Rogue AI Probe** | **During** | Added adversarial test probe simulating a prompt-injected LLM attempting a 95% unapproved swap; proves automated rejection on Solana L1. |
 | **Intel TDX Live Attestation & Proof API** | **During** | Integrated live MagicBlock TEE queries targeting `SealedStrategy` PDA; built `/api/tee-status` verifying Intel TDX hardware attestation and demonstrating hardware ACL 401 withholding without enclave credentials. |
 | **Signal Scraping & Cryptographic Audit** | **During** | Implemented live Firecrawl scraping + Gemini Flash / Groq LLM scoring in `app/api/signal/route.ts` with on-chain SHA-256 hash matching and real-time Proof Ledger streaming with direct Solana Explorer links. |
