@@ -52,16 +52,16 @@ flowchart TD
         AuditLog["Proof Ledger (On-Chain Audit Trail)"]
     end
 
-    User -->|1. Deposit USDC / Mint Shares| QuoteVault
-    Scraper -->|2. Scrape News & Catalysts| LLM
-    LLM -->|3. Evaluate Signal & Generate Order| SealedPDA
-    Attestation -->|Hardware ACL Protection (401 on Unauthorized Peek)| SealedPDA
-    SealedPDA -->|4. Propose Bounded Trade + Signal Hash| Firewall
-    Firewall -->|Check 1: Position Cap <= 20%| TargetVault
-    Firewall -->|Check 2: Target Mint Allowlisted?| TargetVault
-    Firewall -->|Check 3: Circuit Breaker Normal?| TargetVault
-    Firewall -->|Check 4: Signal Hash Match| AuditLog
-    User -->|Emergency Exit: withdraw (Direct L1 Call)| QuoteVault
+    User -->|"1. Deposit USDC / Mint Shares"| QuoteVault
+    Scraper -->|"2. Scrape News and Catalysts"| LLM
+    LLM -->|"3. Evaluate Signal and Generate Order"| SealedPDA
+    Attestation -->|"Hardware ACL Protection (401 on Unauthorized Peek)"| SealedPDA
+    SealedPDA -->|"4. Propose Bounded Trade and Signal Hash"| Firewall
+    Firewall -->|"Check 1: Position Cap max 20%"| TargetVault
+    Firewall -->|"Check 2: Allowlisted Mint Only"| TargetVault
+    Firewall -->|"Check 3: Circuit Breaker Active?"| TargetVault
+    Firewall -->|"Check 4: Signal Hash Match"| AuditLog
+    User -->|"Emergency Exit: withdraw (Direct L1 Call)"| QuoteVault
 ```
 
 ---
