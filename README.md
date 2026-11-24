@@ -6,7 +6,7 @@
 ---
 
 ### 🌐 Links & Deployments
-- **Live Demo App:** [https://blind-vault.vercel.app](https://blind-vault.vercel.app) *(Deployment Link / Demo)*
+- **Live Demo App:** [https://blind-vault-main.vercel.app](https://blind-vault-main.vercel.app) *(Deployment Link / Demo)*
 - **Solana Devnet Program ID:** [`6pDCJuSSzoQCJLtySBf5DqEkSmoFBSDExzjmxWsaDD5N`](https://explorer.solana.com/address/6pDCJuSSzoQCJLtySBf5DqEkSmoFBSDExzjmxWsaDD5N?cluster=devnet)
 - **Program Deployment Transaction:** [`5Mhb61xyMrXtccnDTKy7VVbFq3UPTTRgyGYAf1AVEAqNuDqfKL8NBNbM1njqfhSHEqqgLW25emCNET17jRHF1cYy`](https://explorer.solana.com/tx/5Mhb61xyMrXtccnDTKy7VVbFq3UPTTRgyGYAf1AVEAqNuDqfKL8NBNbM1njqfhSHEqqgLW25emCNET17jRHF1cYy?cluster=devnet)
 - **MagicBlock TEE Ephemeral Validator:** `MTEWGuqxUpYZGFJQcp8tLN7x5v9BSeoFHYWQQ3n3xzo` (`https://devnet-tee.magicblock.app`)
