@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 96" width="800" height="192">
+  <defs>
+    <path id="b" fill-rule="evenodd" d="M18 12H34C42 12 46 17 46 22.5C46 27 43.5 29.5 40.5 31C44.5 32.5 48 36 48 41C48 47 43 52 35 52H18Z M26 19H33C36 19 38 20.5 38 23C38 25.5 36 27 33 27H26Z M26 35H34C37.5 35 39.5 37 39.5 40C39.5 43 37.5 45 34 45H26Z"/>
+    <clipPath id="top"><rect x="0" y="0" width="64" height="32"/></clipPath>
+    <clipPath id="bottom"><rect x="0" y="32" width="64" height="32"/></clipPath>
+  </defs>
+  <rect width="400" height="96" fill="#2531FF"/>
+  <g transform="translate(16 16) scale(1.0)">
+    <rect x="1" y="1" width="62" height="62" rx="16" fill="#2531FF" stroke="#FFFFFF" stroke-width="1.5"/>
+    <g clip-path="url(#top)"><use href="#b" fill="#FFFFFF"/></g>
+    <g clip-path="url(#bottom)"><use href="#b" fill="#BFF0FF"/></g>
+    <line x1="14" y1="32" x2="52" y2="32" stroke="#FFFFFF" stroke-width="1" stroke-opacity="0.4"/>
+    <circle cx="51" cy="13" r="3" fill="#BFF0FF"/>
+  </g>
+  <text x="96" y="58" font-family="'Bluu Next',serif" font-size="36" font-weight="700" letter-spacing="-1" fill="#FFFFFF">Blind Vault<tspan fill="#BFF0FF">.</tspan></text>
+</svg>
