@@ -12,3 +12,5 @@ build/
 next-env.d.ts
 .DS_Store
 blind-vault.txt
+.vercel
+.env*
