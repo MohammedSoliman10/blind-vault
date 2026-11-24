@@ -1,0 +1,1231 @@
+{
+  "address": "6pDCJuSSzoQCJLtySBf5DqEkSmoFBSDExzjmxWsaDD5N",
+  "metadata": {
+    "name": "blind_vault",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Blind Vault on Solana Devnet"
+  },
+  "instructions": [
+    {
+      "name": "delegate_strategy",
+      "docs": [
+        "2. Delegate the SealedStrategy PDA from Solana L1 into MagicBlock Intel TDX PER"
+      ],
+      "discriminator": [
+        64,
+        128,
+        185,
+        199,
+        116,
+        186,
+        103,
+        213
+      ],
+      "accounts": [
+        {
+          "name": "vault"
+        },
+        {
+          "name": "strategy_account"
+        },
+        {
+          "name": "buffer_strategy",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  117,
+                  102,
+                  102,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "strategy"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                86,
+                98,
+                133,
+                133,
+                43,
+                46,
+                154,
+                100,
+                57,
+                139,
+                209,
+                95,
+                204,
+                118,
+                128,
+                135,
+                140,
+                173,
+                113,
+                188,
+                45,
+                212,
+                66,
+                66,
+                217,
+                136,
+                93,
+                73,
+                93,
+                49,
+                115,
+                157
+              ]
+            }
+          }
+        },
+        {
+          "name": "delegation_record_strategy",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "strategy"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegation_program"
+            }
+          }
+        },
+        {
+          "name": "delegation_metadata_strategy",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110,
+                  45,
+                  109,
+                  101,
+                  116,
+                  97,
+                  100,
+                  97,
+                  116,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "strategy"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegation_program"
+            }
+          }
+        },
+        {
+          "name": "strategy",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  114,
+                  97,
+                  116,
+                  101,
+                  103,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "strategist",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "vault"
+          ]
+        },
+        {
+          "name": "owner_program",
+          "address": "6pDCJuSSzoQCJLtySBf5DqEkSmoFBSDExzjmxWsaDD5N"
+        },
+        {
+          "name": "delegation_program",
+          "address": "DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "deposit",
+      "docs": [
+        "5. Deposit quote tokens and receive sovereign pro-rata vault shares (Solana L1)"
+      ],
+      "discriminator": [
+        242,
+        35,
+        198,
+        137,
+        82,
+        225,
+        242,
+        182
+      ],
+      "accounts": [
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "depositor_position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  111,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "depositor"
+              }
+            ]
+          }
+        },
+        {
+          "name": "quote_vault",
+          "writable": true
+        },
+        {
+          "name": "depositor_token_account",
+          "writable": true
+        },
+        {
+          "name": "depositor",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "evaluate_signal_private",
+      "docs": [
+        "4. Evaluate market signal privately inside Intel TDX enclave and commit order to L1"
+      ],
+      "discriminator": [
+        244,
+        162,
+        55,
+        95,
+        235,
+        81,
+        58,
+        175
+      ],
+      "accounts": [
+        {
+          "name": "strategy",
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "relations": [
+            "strategy"
+          ]
+        },
+        {
+          "name": "strategist",
+          "signer": true,
+          "relations": [
+            "vault"
+          ]
+        },
+        {
+          "name": "magic_program",
+          "address": "Magic11111111111111111111111111111111111111"
+        },
+        {
+          "name": "magic_context",
+          "writable": true,
+          "address": "MagicContext1111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "catalyst_score",
+          "type": "u8"
+        },
+        {
+          "name": "signal_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "vault_nav",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "execute_bounded_trade",
+      "docs": [
+        "6. Execute bounded trade through Solana L1 Risk Firewall"
+      ],
+      "discriminator": [
+        114,
+        25,
+        152,
+        25,
+        108,
+        20,
+        57,
+        3
+      ],
+      "accounts": [
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "strategy",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  114,
+                  97,
+                  116,
+                  101,
+                  103,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "quote_vault",
+          "writable": true
+        },
+        {
+          "name": "target_vault",
+          "writable": true
+        },
+        {
+          "name": "demo_pool",
+          "writable": true
+        },
+        {
+          "name": "pool_quote_vault",
+          "writable": true
+        },
+        {
+          "name": "pool_base_vault",
+          "writable": true
+        },
+        {
+          "name": "strategist",
+          "signer": true,
+          "relations": [
+            "vault"
+          ]
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "init_and_seal_strategy",
+      "docs": [
+        "3. Initialize and seal strategy inside the hardware Intel TDX enclave (PER)"
+      ],
+      "discriminator": [
+        34,
+        21,
+        16,
+        239,
+        136,
+        4,
+        244,
+        52
+      ],
+      "accounts": [
+        {
+          "name": "strategy",
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "relations": [
+            "strategy"
+          ]
+        },
+        {
+          "name": "strategist",
+          "signer": true,
+          "relations": [
+            "vault"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "buy_trigger_score",
+          "type": "u8"
+        },
+        {
+          "name": "sell_trigger_score",
+          "type": "u8"
+        },
+        {
+          "name": "target_allocation_bps",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "initialize_demo_pool",
+      "docs": [
+        "9. Initialize constant-product DemoSwapPool on Solana Devnet (L1)"
+      ],
+      "discriminator": [
+        146,
+        176,
+        53,
+        188,
+        39,
+        159,
+        95,
+        177
+      ],
+      "accounts": [
+        {
+          "name": "demo_pool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  109,
+                  111,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "quote_mint"
+              },
+              {
+                "kind": "account",
+                "path": "base_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "quote_mint"
+        },
+        {
+          "name": "base_mint"
+        },
+        {
+          "name": "pool_quote_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  113,
+                  117,
+                  111,
+                  116,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "demo_pool"
+              }
+            ]
+          }
+        },
+        {
+          "name": "pool_base_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  98,
+                  97,
+                  115,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "demo_pool"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "fee_bps",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "initialize_vault",
+      "docs": [
+        "1. Initialize master vault state and associated token vaults on Solana L1"
+      ],
+      "discriminator": [
+        48,
+        191,
+        163,
+        44,
+        71,
+        129,
+        63,
+        164
+      ],
+      "accounts": [
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "vault_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "quote_mint"
+        },
+        {
+          "name": "approved_target_mint"
+        },
+        {
+          "name": "quote_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  113,
+                  117,
+                  111,
+                  116,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "target_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  97,
+                  114,
+                  103,
+                  101,
+                  116,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "strategy",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  114,
+                  97,
+                  116,
+                  101,
+                  103,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "strategist",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "vault_id",
+          "type": "u64"
+        },
+        {
+          "name": "max_position_bps",
+          "type": "u16"
+        },
+        {
+          "name": "daily_loss_limit_bps",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "simulate_market_move",
+      "docs": [
+        "10. Devnet-only helper to simulate market price shocks and test circuit breakers"
+      ],
+      "discriminator": [
+        135,
+        132,
+        189,
+        182,
+        88,
+        147,
+        142,
+        8
+      ],
+      "accounts": [
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "strategist",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "price_drop_bps",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "undelegate_strategy",
+      "docs": [
+        "8. Undelegate strategy from PER back to Solana L1"
+      ],
+      "discriminator": [
+        70,
+        9,
+        61,
+        190,
+        254,
+        144,
+        227,
+        189
+      ],
+      "accounts": [
+        {
+          "name": "vault"
+        },
+        {
+          "name": "strategy",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  114,
+                  97,
+                  116,
+                  101,
+                  103,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              }
+            ]
+          }
+        },
+        {
+          "name": "strategist",
+          "signer": true,
+          "relations": [
+            "vault"
+          ]
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "withdraw",
+      "docs": [
+        "7. Depositor withdrawal escape hatch: permanently open even during halts (Solana L1)"
+      ],
+      "discriminator": [
+        183,
+        18,
+        70,
+        156,
+        148,
+        109,
+        161,
+        34
+      ],
+      "accounts": [
+        {
+          "name": "vault",
+          "writable": true
+        },
+        {
+          "name": "depositor_position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  111,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "vault"
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "quote_vault",
+          "writable": true
+        },
+        {
+          "name": "depositor_token_account",
+          "writable": true
+        },
+        {
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "depositor_position"
+          ]
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "shares_to_burn",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "DemoSwapPool",
+      "discriminator": [
+        30,
+        0,
+        118,
+        93,
+        103,
+        8,
+        110,
+        11
+      ]
+    },
+    {
+      "name": "DepositorPosition",
+      "discriminator": [
+        27,
+        17,
+        217,
+        253,
+        51,
+        126,
+        101,
+        78
+      ]
+    },
+    {
+      "name": "SealedStrategy",
+      "discriminator": [
+        21,
+        127,
+        164,
+        23,
+        27,
+        103,
+        103,
+        193
+      ]
+    },
+    {
+      "name": "VaultState",
+      "discriminator": [
+        228,
+        196,
+        82,
+        165,
+        98,
+        210,
+        235,
+        152
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "VaultIsHalted",
+      "msg": "Vault is halted due to a risk circuit breaker."
+    },
+    {
+      "code": 6001,
+      "name": "ExceedsMaxPositionCap",
+      "msg": "Trade size exceeds the 20% single-trade position cap."
+    },
+    {
+      "code": 6002,
+      "name": "UnapprovedMint",
+      "msg": "Destination token mint is not on the vault allowlist."
+    },
+    {
+      "code": 6003,
+      "name": "DailyDrawdownHalted",
+      "msg": "Rolling 24-hour loss exceeded 5%. Circuit breaker activated; vault is halted."
+    },
+    {
+      "code": 6004,
+      "name": "InvalidTradeNonce",
+      "msg": "Execution nonce does not match sequential counter."
+    },
+    {
+      "code": 6005,
+      "name": "UnauthorizedDepositor",
+      "msg": "Signer is not the owner of this depositor position."
+    },
+    {
+      "code": 6006,
+      "name": "InsufficientShares",
+      "msg": "Withdrawal requested more shares than owned."
+    },
+    {
+      "code": 6007,
+      "name": "AclAccessDenied",
+      "msg": "Hardware Intel TDX Access Denied: Unauthorized strategy inspection."
+    },
+    {
+      "code": 6008,
+      "name": "MathOverflow",
+      "msg": "Invalid calculation or arithmetic overflow."
+    }
+  ],
+  "types": [
+    {
+      "name": "DemoSwapPool",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "quote_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "base_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "pool_quote_vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "pool_base_vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DepositorPosition",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "shares",
+            "type": "u64"
+          },
+          {
+            "name": "deposited_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SealedStrategy",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "buy_trigger_score",
+            "type": "u8"
+          },
+          {
+            "name": "sell_trigger_score",
+            "type": "u8"
+          },
+          {
+            "name": "target_allocation_bps",
+            "type": "u16"
+          },
+          {
+            "name": "last_signal_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "pending_order_side",
+            "type": "u8"
+          },
+          {
+            "name": "pending_order_amount",
+            "type": "u64"
+          },
+          {
+            "name": "pending_nonce",
+            "type": "u64"
+          },
+          {
+            "name": "is_private",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VaultState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "vault_id",
+            "type": "u64"
+          },
+          {
+            "name": "strategist",
+            "type": "pubkey"
+          },
+          {
+            "name": "quote_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "approved_target_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "quote_vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "target_vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "total_shares",
+            "type": "u64"
+          },
+          {
+            "name": "max_position_bps",
+            "type": "u16"
+          },
+          {
+            "name": "daily_loss_limit_bps",
+            "type": "u16"
+          },
+          {
+            "name": "window_start_ts",
+            "type": "i64"
+          },
+          {
+            "name": "window_high_water_nav",
+            "type": "u64"
+          },
+          {
+            "name": "is_halted",
+            "type": "bool"
+          },
+          {
+            "name": "trade_nonce",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ]
+}

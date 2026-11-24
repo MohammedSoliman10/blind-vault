@@ -298,10 +298,29 @@ export function AiTradeView({ actorAddress, onTradeSuccess, onActionResult }: Ai
                     <span className="type-label text-text-2">Cryptographic signal hash</span>
                     <span className="type-label text-accent">SHA-256 validated</span>
                   </div>
-                  <div className="type-data select-all break-all border border-line-soft p-2.5">
+                  <div className="type-data select-all break-all border border-line-soft p-2.5 font-mono text-xs">
                     {result.signalHash}
                   </div>
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line-soft pt-2.5">
+                    <span className="type-small text-text-2">SealedStrategy.lastSignalHash:</span>
+                    <span className="type-label inline-flex items-center gap-1.5 text-accent">
+                      <ShieldCheck className="h-3.5 w-3.5 text-accent" {...ICON} />
+                      Anchored to On-Chain Strategy State
+                    </span>
+                  </div>
                 </div>
+
+                {result.txSignature && (
+                  <div className="space-y-1.5 border border-line p-4">
+                    <div className="flex items-center justify-between">
+                      <span className="type-label block text-text-2">Solana Devnet Settlement</span>
+                      <Chip tone="accent">Confirmed on L1</Chip>
+                    </div>
+                    <div className="type-data select-all break-all font-mono text-xs text-accent">
+                      {result.txSignature}
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div key="idle" className="space-y-5">

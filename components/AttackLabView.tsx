@@ -4,9 +4,11 @@ import React, { useState } from "react";
 import {
   dispatchAttackOperatorTheft,
   dispatchAttackOversizedSwap,
+  dispatchAttackPromptInjection,
   dispatchAttackCrashBreaker,
   dispatchEmergencyExit,
   dispatchCustomSwap,
+  dispatchMarketShock,
   ActionResult,
 } from "../lib/solana/arena-actions";
 import { isRealSolanaTxSignature } from "../lib/supabase/realtime";
@@ -17,6 +19,7 @@ import {
   ShieldCheck,
   UserX,
   TrendingUp,
+  BrainCircuit,
   Play,
   AlertTriangle,
 } from "lucide-react";
@@ -76,6 +79,14 @@ export function AttackLabView({
       actionFn: dispatchAttackOversizedSwap,
       guardType: "20% NAV Cap",
       milestone: "cap20" as const,
+    },
+    {
+      id: "ROGUE_AI_INJECTION",
+      title: "Prompt-injected rogue AI",
+      subtitle: "Adversarial news payload forces 95% swap to unapproved mint",
+      icon: <BrainCircuit className="h-4 w-4" {...ICON} />,
+      actionFn: dispatchAttackPromptInjection,
+      guardType: "20% Cap + Allowlist",
     },
     {
       id: "CRASH_BREAKER",
@@ -143,26 +154,31 @@ export function AttackLabView({
     }
   };
 
-  const handleSimulateShock = () => {
-    onMarketShock?.(marketShockPct);
-    const tripsBreaker = marketShockPct <= -5.0;
-    if (tripsBreaker) {
-      onVaultHaltChange(true);
-      onMilestoneComplete?.("breaker5");
+  const handleSimulateShock = async () => {
+    setActiveAttack("SIMULATE_SHOCK");
+    try {
+      const result = await dispatchMarketShock(marketShockPct, actorAddress);
+      onActionResult(result);
+      onMarketShock?.(marketShockPct);
+      const tripsBreaker = marketShockPct <= -5.0;
+      if (tripsBreaker) {
+        onVaultHaltChange(true);
+        onMilestoneComplete?.("breaker5");
+      }
+    } catch (err: any) {
+      onActionResult({
+        success: false,
+        blocked: true,
+        proofType: "L1_PREFLIGHT",
+        whatYouTried: `You triggered a ${marketShockPct.toFixed(1)}% market volatility shock on vault NAV.`,
+        whyItHappened: err.message || "Market shock simulation failed.",
+        errorMessage: err.message || "Shock failed",
+        txSignature: null,
+        explorerUrl: `https://explorer.solana.com/address/6pDCJuSSzoQCJLtySBf5DqEkSmoFBSDExzjmxWsaDD5N?cluster=devnet`,
+      });
+    } finally {
+      setActiveAttack(null);
     }
-
-    onActionResult({
-      success: !tripsBreaker,
-      blocked: tripsBreaker,
-      proofType: "L1_PREFLIGHT",
-      whatYouTried: `You triggered a ${marketShockPct.toFixed(1)}% market volatility shock on vault NAV.`,
-      whyItHappened: tripsBreaker
-        ? `Drawdown breached the 5.0% rolling loss limit (${marketShockPct.toFixed(1)}%). Solana L1 circuit breaker automatically HALTED all trading.`
-        : `Volatility shock (${marketShockPct.toFixed(1)}%) absorbed within the safe 5.0% rolling risk limit. Vault remains active.`,
-      errorMessage: tripsBreaker ? "VaultHalted: 5% Loss Breaker Tripped" : "Shock Absorbed",
-      txSignature: null,
-      explorerUrl: `https://explorer.solana.com/address/6pDCJuSSzoQCJLtySBf5DqEkSmoFBSDExzjmxWsaDD5N?cluster=devnet`,
-    });
   };
 
   const handleEmergencyExit = async () => {
@@ -451,6 +467,32 @@ export function AttackLabView({
                     </div>
                   </div>
                 </div>
+
+                {actionFeedback.rawLogs && actionFeedback.rawLogs.length > 0 && (
+                  <div className="space-y-2 border border-line p-4">
+                    <div className="flex items-center justify-between">
+                      <span className="type-label block text-text-2">Raw Solana Validator Logs</span>
+                      <span className="type-data font-mono text-[11px] text-accent">Devnet Preflight Autopsy</span>
+                    </div>
+                    <div className="mt-2 max-h-48 overflow-y-auto rounded border border-line-soft bg-black/70 p-3 font-mono text-[11px] leading-relaxed text-text">
+                      {actionFeedback.rawLogs.map((log, idx) => (
+                        <div
+                          key={idx}
+                          className={cx(
+                            "break-words whitespace-pre-wrap",
+                            log.includes("AnchorError") || log.includes("failed") || log.includes("Error") || log.includes("denied")
+                              ? "font-semibold text-alert"
+                              : log.includes("Instruction") || log.includes("invoke")
+                              ? "text-blue"
+                              : "text-text-2"
+                          )}
+                        >
+                          {log}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div key="idle" className="space-y-5">

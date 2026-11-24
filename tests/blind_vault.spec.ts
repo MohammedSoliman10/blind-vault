@@ -7,7 +7,9 @@ import path from 'node:path';
 import fs from 'node:fs';
 
 // Load IDL
-const idlPath = path.resolve(process.cwd(), 'target/idl/blind_vault.json');
+const idlPath = fs.existsSync(path.resolve(process.cwd(), 'lib/solana/idl/blind_vault.json'))
+  ? path.resolve(process.cwd(), 'lib/solana/idl/blind_vault.json')
+  : path.resolve(process.cwd(), 'target/idl/blind_vault.json');
 const idl = JSON.parse(fs.readFileSync(idlPath, 'utf-8'));
 const PROGRAM_ID = new web3.PublicKey(idl.address);
 const SBF_PATH = path.resolve(process.cwd(), 'target/deploy/blind_vault.so');

@@ -73,7 +73,10 @@ async function main() {
   // ------------------------------------------------------------------------
   console.log("\n[3/5] Deploying Blind Vault and Sealing Strategy on Devnet...");
   const connection = new Connection(DEVNET_RPC, "confirmed");
-  const idl = JSON.parse(fs.readFileSync("./target/idl/blind_vault.json", "utf8"));
+  const idlPath = fs.existsSync("./lib/solana/idl/blind_vault.json")
+    ? "./lib/solana/idl/blind_vault.json"
+    : "./target/idl/blind_vault.json";
+  const idl = JSON.parse(fs.readFileSync(idlPath, "utf8"));
   const programId = new PublicKey("6pDCJuSSzoQCJLtySBf5DqEkSmoFBSDExzjmxWsaDD5N");
   const wallet = new anchor.Wallet(strategist);
   const provider = new anchor.AnchorProvider(connection, wallet, { commitment: "confirmed" });

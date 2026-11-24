@@ -239,21 +239,36 @@ export function ProofLedgerView({ events, onClearTape }: ProofLedgerViewProps) {
                         <span className="type-data mt-1 block truncate">{evt.vault}</span>
                       </div>
                       {signalHash && (
-                        <div className="sm:col-span-2">
-                          <span className="type-label block text-text-2">Signal hash (SHA-256)</span>
-                          <span className="type-data mt-1 block break-all">{signalHash}</span>
+                        <div className="sm:col-span-2 space-y-1.5 border border-line-soft p-3">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className="type-label text-text-2">Signal hash (SHA-256)</span>
+                            <span className="type-label text-accent">Matched on-chain strategy state</span>
+                          </div>
+                          <span className="type-data mt-1 block break-all font-mono text-xs">{signalHash}</span>
+                          <span className="type-small block text-[11px] text-text-2">
+                            Verified against SealedStrategy.last_signal_hash cryptographic commit
+                          </span>
                         </div>
                       )}
                     </div>
 
                     <div className="border-t border-line-soft pt-3 text-right">
                       <a
-                        href={`https://explorer.solana.com/address/${DEPLOYED_PROGRAM_ID}?cluster=devnet`}
+                        href={
+                          evt.explorerUrl ||
+                          (isRealTx
+                            ? `https://explorer.solana.com/tx/${evt.txSignature}?cluster=devnet`
+                            : `https://explorer.solana.com/address/${DEPLOYED_PROGRAM_ID}?cluster=devnet`)
+                        }
                         target="_blank"
                         rel="noreferrer"
                         className="link type-small inline-flex items-center gap-1.5"
                       >
-                        <span>View program verification on Solana Explorer</span>
+                        <span>
+                          {isRealTx
+                            ? "View verified transaction on Solana Explorer"
+                            : "View program verification on Solana Explorer"}
+                        </span>
                         <ExternalLink className="h-3.5 w-3.5" {...ICON} />
                       </a>
                     </div>

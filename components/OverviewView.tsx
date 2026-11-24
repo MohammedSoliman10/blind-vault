@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import {
   dispatchAttackPeekStrategy,
   ActionResult,
+  DEMO_TARGET_MINT,
 } from "../lib/solana/arena-actions";
 import {
   Shield,
@@ -27,6 +28,8 @@ interface OverviewViewProps {
   actorAddress: string;
   isHalted: boolean;
   tvlUsdc: number;
+  quoteBalance?: number;
+  targetBalance?: number;
   depositorShares: number;
   demoBalance: number;
   chartData: ChartPoint[];
@@ -53,6 +56,8 @@ export function OverviewView({
   actorAddress,
   isHalted,
   tvlUsdc,
+  quoteBalance,
+  targetBalance,
   depositorShares,
   demoBalance,
   chartData,
@@ -67,10 +72,40 @@ export function OverviewView({
   const [submitting, setSubmitting] = useState(false);
   const [peekLoading, setPeekLoading] = useState(false);
   const [peekResult, setPeekResult] = useState<ActionResult | null>(null);
+  const [teeStatus, setTeeStatus] = useState<{
+    quoteVerified: boolean;
+    attestationEngine: string;
+    hardwareMemory: string;
+    sealedStrategyPda: string;
+    aclBlocked: boolean;
+  } | null>(null);
+
+  React.useEffect(() => {
+    fetch("/api/tee-status")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setTeeStatus({
+            quoteVerified: data.quoteVerified,
+            attestationEngine: data.attestationEngine,
+            hardwareMemory: data.hardwareMemory,
+            sealedStrategyPda: data.sealedStrategyPda,
+            aclBlocked: data.aclBlocked,
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const numAmount = parseFloat(inputAmount) || 0;
   const userSharesCount = depositorShares / 1000;
   const navPerShare = tvlUsdc > 0 && userSharesCount > 0 ? tvlUsdc / userSharesCount : 1.0;
+
+  const qBal = quoteBalance !== undefined ? quoteBalance : tvlUsdc;
+  const tBal = targetBalance !== undefined ? targetBalance : 0;
+  const totalNav = tvlUsdc > 0 ? tvlUsdc : qBal + tBal;
+  const usdcPct = totalNav > 0 ? Math.min(100, Math.max(0, (qBal / totalNav) * 100)) : 100;
+  const targetPct = totalNav > 0 ? Math.min(100, Math.max(0, (tBal / totalNav) * 100)) : 0;
 
   const handleQuickFill = (pct: number) => {
     if (cockpitMode === "deposit") {
@@ -201,7 +236,12 @@ export function OverviewView({
                   <dt className="type-small text-blue/80">
                     {cockpitMode === "deposit" ? "Shares to mint" : "Shares to redeem"}
                   </dt>
-                  <dd className="type-data font-semibold">{numAmount.toFixed(2)} Shares</dd>
+                  <dd className="type-data font-semibold">
+                    {(cockpitMode === "deposit"
+                      ? (navPerShare > 0 ? numAmount / navPerShare : numAmount)
+                      : numAmount
+                    ).toFixed(2)} Shares
+                  </dd>
                 </div>
                 <div className="flex items-baseline justify-between gap-4 py-2.5">
                   <dt className="type-small text-blue/80">Updated 20% trade cap</dt>
@@ -257,9 +297,19 @@ export function OverviewView({
           />
 
           <dl className="divide-y divide-line-soft">
-            <Row label="Attestation engine" value="MagicBlock TDX PER" />
-            <Row label="Hardware memory" value="AES-128-XTS encrypted" accent />
+            <Row label="Attestation engine" value={teeStatus?.attestationEngine || "MagicBlock TDX PER"} />
+            <Row label="Hardware memory" value={teeStatus?.hardwareMemory || "AES-128-XTS encrypted"} accent />
             <Row label="Strategy protection" value="Hardware PER ACL enforced" />
+            <Row
+              label="Sealed strategy PDA"
+              value={
+                <span className="font-mono text-xs">
+                  {teeStatus?.sealedStrategyPda
+                    ? `${teeStatus.sealedStrategyPda.slice(0, 6)}...${teeStatus.sealedStrategyPda.slice(-6)}`
+                    : "3Jca...wmwG2"}
+                </span>
+              }
+            />
           </dl>
 
           <div className="mt-4 space-y-4">
@@ -292,9 +342,48 @@ export function OverviewView({
         </Panel>
       </div>
 
-      {/* RIGHT: chart + L1 firewall */}
+      {/* RIGHT: chart + asset allocation + L1 firewall */}
       <div className="col-span-12 flex min-w-0 flex-col gap-6 lg:col-span-7 lg:gap-8">
         <VaultPerformanceChart data={chartData} isHalted={isHalted} />
+
+        {/* Real-time On-Chain Asset Allocation Bar */}
+        <Panel className="p-5">
+          <div className="space-y-3">
+            <div className="flex items-baseline justify-between gap-4">
+              <span className="type-label text-text-2">Live Vault Asset Allocation</span>
+              <span className="type-data text-xs font-semibold text-accent">Real-Time On-Chain Reserves</span>
+            </div>
+            <div className="flex h-2.5 w-full overflow-hidden rounded bg-line-soft">
+              <div
+                style={{ width: `${usdcPct}%` }}
+                className="bg-blue transition-all duration-300"
+                title={`USDC: ${usdcPct.toFixed(1)}%`}
+              />
+              <div
+                style={{ width: `${targetPct}%` }}
+                className="bg-accent transition-all duration-300"
+                title={`Target Token: ${targetPct.toFixed(1)}%`}
+              />
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-blue" />
+                <span className="type-small font-medium text-text-2">
+                  Demo USDC: <strong className="text-text">${qBal.toFixed(2)}</strong> ({usdcPct.toFixed(1)}%)
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-accent" />
+                <span className="type-small font-medium text-text-2">
+                  Target Token: <strong className="text-text">${tBal.toFixed(2)}</strong> ({targetPct.toFixed(1)}%)
+                </span>
+              </div>
+              <div className="type-data font-mono text-text-2">
+                20% Cap: ${(totalNav * 0.2).toFixed(2)}
+              </div>
+            </div>
+          </div>
+        </Panel>
 
         <Panel className="p-5 lg:p-6">
           <PanelHeader
@@ -318,7 +407,7 @@ export function OverviewView({
             {[
               { label: "Position cap", value: "20.0% NAV max", sub: "Anti-concentration" },
               { label: "Daily breaker", value: "5.0% rolling", sub: "Auto-halt trigger" },
-              { label: "Token whitelist", value: "hTxJ...", sub: "Approved mints only" },
+              { label: "Token whitelist", value: `${DEMO_TARGET_MINT.slice(0, 4)}...${DEMO_TARGET_MINT.slice(-4)}`, sub: "Approved mints only" },
               { label: "Escape hatch", value: "100% exit", sub: "Non-custodial claim", accent: true },
             ].map((g) => (
               <div key={g.label} className="flex flex-col gap-3 bg-background p-4">

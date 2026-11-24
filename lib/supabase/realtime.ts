@@ -21,7 +21,7 @@ export type ArenaEventType =
 export interface ArenaEvent {
   id: string;
   eventType: ArenaEventType;
-  attackType?: "PEEK_STRATEGY" | "OPERATOR_WITHDRAW" | "OVERSIZED_SWAP" | "CIRCUIT_BREAKER";
+  attackType?: "PEEK_STRATEGY" | "OPERATOR_WITHDRAW" | "OVERSIZED_SWAP" | "CIRCUIT_BREAKER" | "ROGUE_AI_INJECTION";
   status: "BLOCKED" | "SUCCESS" | "HALTED";
   actor: string;
   vault: string;

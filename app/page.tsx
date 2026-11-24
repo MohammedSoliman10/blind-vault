@@ -29,10 +29,19 @@ import {
 } from "../lib/supabase/realtime";
 import {
   DEPLOYED_PROGRAM_ID,
+  DEMO_VAULT_PDA,
+  DEMO_QUOTE_VAULT_PDA,
+  DEMO_TARGET_VAULT_PDA,
+  DEMO_USDC_MINT,
+  getSolanaConnection,
   ActionResult,
   dispatchDeposit,
   dispatchWithdraw,
 } from "../lib/solana/arena-actions";
+import { getVaultStateDecoder } from "../lib/solana/generated/accounts/vaultState";
+import { getDepositorPositionDecoder } from "../lib/solana/generated/accounts/depositorPosition";
+import { PublicKey } from "@solana/web3.js";
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { Shield, ArrowRight } from "lucide-react";
 
 const INITIAL_CHART_POINTS: ChartPoint[] = [
@@ -90,6 +99,79 @@ export default function ArenaPage() {
 
   // Real-time Action Feedback (persists across views)
   const [actionFeedback, setActionFeedback] = useState<ActionResult | null>(null);
+  const [quoteBalance, setQuoteBalance] = useState<number>(1000);
+  const [targetBalance, setTargetBalance] = useState<number>(0);
+
+  const hydrateOnChainState = async (actor: string) => {
+    try {
+      const conn = getSolanaConnection();
+      const vaultPda = new PublicKey(DEMO_VAULT_PDA);
+      const quoteVaultPda = new PublicKey(DEMO_QUOTE_VAULT_PDA);
+      const targetVaultPda = new PublicKey(DEMO_TARGET_VAULT_PDA);
+      const programId = new PublicKey(DEPLOYED_PROGRAM_ID);
+      const usdcMint = new PublicKey(DEMO_USDC_MINT);
+
+      // 1. Vault State
+      const vaultAcc = await conn.getAccountInfo(vaultPda);
+      if (vaultAcc) {
+        const decodedVault = getVaultStateDecoder().decode(vaultAcc.data);
+        setIsHalted(decodedVault.isHalted);
+      }
+
+      // 2. Quote Vault & Target Vault Balances
+      let qBal = 1000;
+      let tBal = 0;
+      try {
+        const qRes = await conn.getTokenAccountBalance(quoteVaultPda);
+        qBal = qRes.value.uiAmount || 0;
+      } catch {}
+
+      try {
+        const tRes = await conn.getTokenAccountBalance(targetVaultPda);
+        tBal = tRes.value.uiAmount || 0;
+      } catch {}
+
+      setQuoteBalance(qBal);
+      setTargetBalance(tBal);
+
+      const totalNav = parseFloat((qBal + tBal).toFixed(2));
+      if (totalNav > 0) {
+        setTvlUsdc(totalNav);
+      }
+
+      // 3. Depositor Position
+      if (actor) {
+        try {
+          const [depositorPosPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("depositor"), vaultPda.toBuffer(), new PublicKey(actor).toBuffer()],
+            programId
+          );
+          const posAcc = await conn.getAccountInfo(depositorPosPda);
+          if (posAcc) {
+            const decodedPos = getDepositorPositionDecoder().decode(posAcc.data);
+            const userShares = Number(decodedPos.shares) / 1000;
+            setDepositorShares(userShares);
+          } else {
+            setDepositorShares(0);
+          }
+        } catch {
+          setDepositorShares(0);
+        }
+
+        // 4. Guest Wallet USDC balance on-chain
+        try {
+          const userAta = getAssociatedTokenAddressSync(usdcMint, new PublicKey(actor));
+          const ataBal = await conn.getTokenAccountBalance(userAta);
+          if (ataBal.value.uiAmount !== null) {
+            setDemoBalance(ataBal.value.uiAmount);
+            setGuestDemoBalance(ataBal.value.uiAmount);
+          }
+        } catch {}
+      }
+    } catch (err) {
+      console.warn("On-chain hydration warning:", err);
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -102,6 +184,7 @@ export default function ArenaPage() {
     const session = getOrCreateGuestWallet();
     setGuestPubkey(session.publicKeyBase58);
     setDemoBalance(session.demoUsdcBalance);
+    hydrateOnChainState(session.publicKeyBase58);
 
     // Initial session boot record
     emitArenaEvent({
@@ -187,6 +270,7 @@ export default function ArenaPage() {
       const res = await requestDemoFaucet(session.publicKey);
       if (res.success && res.newBalance !== undefined) {
         setDemoBalance(res.newBalance);
+        await hydrateOnChainState(guestPubkey);
         emitArenaEvent({
           eventType: "GUEST_FAUCET",
           status: "SUCCESS",
@@ -211,36 +295,26 @@ export default function ArenaPage() {
       alert("Insufficient Demo USDC balance in guest wallet.");
       return;
     }
-    const userSharesCount = depositorShares / 1000;
-    const preNavPerShare = tvlUsdc > 0 && userSharesCount > 0 ? tvlUsdc / userSharesCount : 1.0;
-    const sharesToMint = (amount / preNavPerShare) * 1000;
 
-    const res = await dispatchDeposit(amount, activeActorPubkey);
-    setActionFeedback(res);
-
-    const newBalance = demoBalance - amount;
-    setDemoBalance(newBalance);
     try {
-      setGuestDemoBalance(newBalance);
-    } catch (err) {
-      console.warn("Failed to persist guest demo balance:", err);
+      const res = await dispatchDeposit(amount, activeActorPubkey);
+      setActionFeedback(res);
+      await hydrateOnChainState(activeActorPubkey);
+
+      setChartPoints((prev) => [
+        ...prev,
+        {
+          id: `pt-dep-${Date.now()}`,
+          timestamp: Date.now(),
+          label: `Deposit +$${amount.toFixed(2)}`,
+          nav: tvlUsdc + amount,
+          drawdownPct: 0.0,
+          type: "DEPOSIT",
+        },
+      ]);
+    } catch (err: any) {
+      alert(err.message || "Deposit transaction failed");
     }
-
-    const newNav = parseFloat((tvlUsdc + amount).toFixed(2));
-    setTvlUsdc(newNav);
-    setDepositorShares((prev) => Math.round(prev + sharesToMint));
-
-    setChartPoints((prev) => [
-      ...prev,
-      {
-        id: `pt-dep-${Date.now()}`,
-        timestamp: Date.now(),
-        label: `Deposit +$${amount.toFixed(2)}`,
-        nav: newNav,
-        drawdownPct: 0.0,
-        type: "DEPOSIT",
-      },
-    ]);
   };
 
   const handleWithdraw = async (amount: number) => {
@@ -249,51 +323,41 @@ export default function ArenaPage() {
       alert("Withdraw amount exceeds your owned vault shares.");
       return;
     }
-    const navPerShare = tvlUsdc > 0 && userSharesCount > 0 ? tvlUsdc / userSharesCount : 1.0;
-    const usdcRedeemed = parseFloat((amount * navPerShare).toFixed(2));
 
-    const res = await dispatchWithdraw(amount, activeActorPubkey);
-    setActionFeedback(res);
-
-    const newBalance = demoBalance + usdcRedeemed;
-    setDemoBalance(newBalance);
     try {
-      setGuestDemoBalance(newBalance);
-    } catch (err) {
-      console.warn("Failed to persist guest demo balance:", err);
+      const res = await dispatchWithdraw(amount, activeActorPubkey);
+      setActionFeedback(res);
+      await hydrateOnChainState(activeActorPubkey);
+
+      setChartPoints((prev) => [
+        ...prev,
+        {
+          id: `pt-wth-${Date.now()}`,
+          timestamp: Date.now(),
+          label: `Withdraw -$${amount.toFixed(2)}`,
+          nav: Math.max(0, tvlUsdc - amount),
+          drawdownPct: 0.0,
+          type: "WITHDRAW",
+        },
+      ]);
+    } catch (err: any) {
+      alert(err.message || "Withdrawal failed");
     }
-
-    const newNav = parseFloat(Math.max(0, tvlUsdc - usdcRedeemed).toFixed(2));
-    setTvlUsdc(newNav);
-    setDepositorShares((prev) => Math.max(0, prev - amount * 1000));
-
-    setChartPoints((prev) => [
-      ...prev,
-      {
-        id: `pt-wth-${Date.now()}`,
-        timestamp: Date.now(),
-        label: `Withdraw -$${usdcRedeemed.toFixed(2)}`,
-        nav: newNav,
-        drawdownPct: 0.0,
-        type: "WITHDRAW",
-      },
-    ]);
   };
 
   const handleActionResult = (result: ActionResult) => {
     setActionFeedback(result);
   };
 
-  const handleCustomSwapSuccess = (amountDelta: number) => {
-    const newNav = parseFloat((tvlUsdc + amountDelta).toFixed(2));
-    setTvlUsdc(newNav);
+  const handleCustomSwapSuccess = async (amountDelta: number) => {
+    await hydrateOnChainState(activeActorPubkey);
     setChartPoints((prev) => [
       ...prev,
       {
         id: `pt-swap-${Date.now()}`,
         timestamp: Date.now(),
-        label: `Swap +$${amountDelta.toFixed(2)}`,
-        nav: newNav,
+        label: `Swap ${amountDelta >= 0 ? "+" : ""}$${amountDelta.toFixed(2)}`,
+        nav: tvlUsdc + amountDelta,
         drawdownPct: 0.0,
         type: "TRADE",
       },
@@ -318,40 +382,29 @@ export default function ArenaPage() {
     ]);
   };
 
-  const handleTradeSuccess = () => {
-    const newNav = parseFloat((tvlUsdc + 15.25).toFixed(2));
-    setTvlUsdc(newNav);
+  const handleTradeSuccess = async () => {
+    await hydrateOnChainState(activeActorPubkey);
     setChartPoints((prev) => [
       ...prev,
       {
         id: `pt-trade-${Date.now()}`,
         timestamp: Date.now(),
-        label: "AI Trade +$15.25",
-        nav: newNav,
+        label: "AI Bounded Trade",
+        nav: tvlUsdc,
         drawdownPct: 0.0,
         type: "TRADE",
       },
     ]);
   };
 
-  const handleDepositorExitSuccess = () => {
-    const remainingToRefund = tvlUsdc;
-    setDepositorShares(0);
-    setTvlUsdc(0);
-    const newBalance = demoBalance + remainingToRefund;
-    setDemoBalance(newBalance);
-    try {
-      setGuestDemoBalance(newBalance);
-    } catch (err) {
-      console.warn("Failed to persist guest demo balance:", err);
-    }
-
+  const handleDepositorExitSuccess = async () => {
+    await hydrateOnChainState(activeActorPubkey);
     setChartPoints((prev) => [
       ...prev,
       {
         id: `pt-exit-${Date.now()}`,
         timestamp: Date.now(),
-        label: `100% Exit ($${remainingToRefund.toFixed(2)})`,
+        label: `100% Exit`,
         nav: 0,
         drawdownPct: 0.0,
         type: "EXIT",
@@ -475,6 +528,8 @@ export default function ArenaPage() {
             actorAddress={activeActorPubkey}
             isHalted={isHalted}
             tvlUsdc={tvlUsdc}
+            quoteBalance={quoteBalance}
+            targetBalance={targetBalance}
             depositorShares={depositorShares}
             demoBalance={demoBalance}
             chartData={chartPoints}
